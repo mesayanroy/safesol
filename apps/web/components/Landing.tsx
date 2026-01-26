@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import { PhantomSetupGuide } from './PhantomSetupGuide';
 
 export const LandingHero: FC = () => (
   <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900 flex items-center justify-center px-4">
@@ -124,6 +125,9 @@ export const HowItWorks: FC = () => (
           </p>
         </div>
       </div>
+
+      {/* Setup Guide */}
+      <PhantomSetupGuide />
     </div>
   </div>
 );

@@ -9,9 +9,14 @@ import PaymentForm from '@/components/PaymentForm';
 import TransactionHistory from '@/components/TransactionHistory';
 import { LandingHero, HowItWorks } from '@/components/Landing';
 import { PrivacyCard, WalletStatus, StepIndicator } from '@/components/UI';
+import { WalletDebugPanel } from '@/components/WalletDebugPanel';
 import { generateSpendProof, generateSecret } from '@/lib/zk';
 import { buildPrivatePaymentTx, getExplorerUrl } from '@/lib/solana';
 import { createLightClient } from '@/lib/light';
+
+// Enable debug mode by adding ?debug=1 to URL
+const isDebugMode =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
 
 export default function Home() {
   const { connection } = useConnection();
@@ -22,17 +27,30 @@ export default function Home() {
   >('idle');
   const [loading, setLoading] = useState(false);
   const [showApp, setShowApp] = useState(false);
+  const [connectionError, setConnectionError] = useState<string>('');
 
   const handlePrivatePayment = async (recipient: string, amount: number) => {
     if (!wallet.publicKey || !wallet.signTransaction) {
-      alert('Please connect wallet');
+      setConnectionError('Please connect wallet first');
+      setTimeout(() => setConnectionError(''), 3000);
       return;
     }
 
+    if (!connection) {
+      setConnectionError('Network connection failed. Please refresh the page.');
+      return;
+    }
+
+    setConnectionError('');
     setLoading(true);
     setProofStatus('generating');
     try {
-      console.log('[App] Starting private payment...');
+      console.log('[App] Starting private payment...', {
+        wallet: wallet.publicKey?.toString(),
+        connected: wallet.connected,
+      });
+
+      console.log('[App] Starting ZK proof generation...');
 
       // 1. Generate ZK proof (MOCKED for hackathon)
       const secret = generateSecret();
@@ -48,10 +66,11 @@ export default function Home() {
         true // Use mock proof
       );
 
-      console.log('[App] ZK proof generated:', proof.nullifier);
+      console.log('[App] ✓ ZK proof generated:', proof.nullifier);
       setProofStatus('generated');
 
       // 2. Build transaction
+      console.log('[App] Building private payment transaction...');
       const provider = new AnchorProvider(connection, wallet as any, { commitment: 'confirmed' });
 
       const tx = await buildPrivatePaymentTx(provider, {
@@ -61,13 +80,34 @@ export default function Home() {
         merkleRoot: Buffer.alloc(32, 0),
       });
 
+      console.log('[App] ✓ Transaction built, awaiting signature...');
       setProofStatus('submitted');
 
-      // 3. Send transaction
-      const signature = await wallet.sendTransaction(tx, connection);
-      await connection.confirmTransaction(signature, 'confirmed');
+      // 3. Send transaction with proper error handling
+      // Phantom requires explicit interaction here
+      let signature: string;
+      try {
+        signature = await wallet.sendTransaction(tx, connection, {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+        });
+        console.log('[App] ✓ Transaction sent, signature:', signature);
+      } catch (signErr: any) {
+        console.error('[App] ✗ Signature rejected by wallet:', {
+          error: signErr.message,
+          code: signErr.code,
+          walletName: wallet.wallet?.adapter.name,
+        });
+        throw new Error(
+          `${wallet.wallet?.adapter.name || 'Wallet'} signature rejected: ${signErr.message || 'User cancelled'}`
+        );
+      }
 
-      console.log('[App] Transaction confirmed:', signature);
+      // Confirm transaction
+      console.log('[App] Confirming transaction...');
+      await connection.confirmTransaction(signature, 'confirmed');
+      console.log('[App] ✓ Transaction confirmed');
+
       setTxSignature(signature);
       setProofStatus('confirmed');
 
@@ -75,7 +115,9 @@ export default function Home() {
     } catch (err: any) {
       console.error('[App] Payment failed:', err);
       setProofStatus('error');
-      alert(`Error: ${err.message}`);
+      const errorMsg = err?.message || 'Transaction failed. Please try again.';
+      setConnectionError(errorMsg);
+      setTimeout(() => setConnectionError(''), 5000);
     } finally {
       setLoading(false);
     }
@@ -148,7 +190,23 @@ export default function Home() {
   // Dashboard/App view
   return (
     <main className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
+      {/* Debug Panel - visible with ?debug=1 param */}
+      <WalletDebugPanel show={isDebugMode} />
+
       <div className="container mx-auto px-4 py-8">
+        {/* Error Banner */}
+        {connectionError && (
+          <div className="mb-6 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center justify-between">
+            <span className="text-red-800 dark:text-red-200 text-sm">{connectionError}</span>
+            <button
+              onClick={() => setConnectionError('')}
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex justify-between items-center mb-12">
           <div>
