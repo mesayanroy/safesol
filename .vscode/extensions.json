@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "rust-lang.rust-analyzer",
+    "bungcip.better-toml",
+    "serayuzgur.crates",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-next",
+    "dsznajder.es7-react-js-snippets",
+    "formulahendry.auto-rename-tag",
+    "eamodio.gitlens",
+    "christian-kohler.path-intellisense",
+    "usernamehw.errorlens",
+    "wayou.vscode-todo-highlight"
+  ]
+}

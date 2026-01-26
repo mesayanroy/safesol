@@ -1,0 +1,42 @@
+{
+  "name": "zk-private-payments",
+  "version": "1.0.0",
+  "description": "Privacy-preserving payments on Solana with ZK proofs",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @zk-private-payments/web run dev",
+    "build": "anchor build",
+    "deploy": "ts-node scripts/deploy.ts",
+    "init-state": "ts-node scripts/init_state.ts",
+    "demo": "ts-node scripts/demo_flow.ts",
+    "test": "anchor test",
+    "dev:web": "cd apps/web && npm run dev",
+    "build:circuits": "cd zk/scripts && ./build_circuit.sh spend && ./build_circuit.sh membership && ./build_circuit.sh disclosure",
+    "clean": "anchor clean && rm -rf apps/web/.next"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.6",
+    "@lightprotocol/stateless.js": "^0.9.0",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.3",
+    "bn.js": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "ts-mocha": "^10.0.0"
+  },
+  "keywords": [
+    "solana",
+    "zero-knowledge",
+    "privacy",
+    "zk-snarks",
+    "light-protocol",
+    "anchor"
+  ],
+  "license": "MIT"
+}

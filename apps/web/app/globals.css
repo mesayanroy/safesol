@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Clean, minimal design system matching Reclaim Protocol */
+:root {
+  color-scheme: light dark;
+  --foreground: 7, 5, 1; /* stone-950 */
+  --background: 250, 250, 249; /* stone-50 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: 250, 250, 249; /* stone-50 */
+    --background: 7, 5, 1; /* stone-950 */
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-50 transition-colors duration-200;
+}
+
+/* Wallet Adapter Styling - Professional minimal */
+.wallet-adapter-button {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-4 py-2 transition-colors duration-200;
+}
+
+.wallet-adapter-button:hover {
+  @apply shadow-md;
+}
+
+.wallet-adapter-button-trigger {
+  @apply bg-blue-600 hover:bg-blue-700;
+}
+
+/* Dropdown styling */
+.wallet-adapter-dropdown-list {
+  @apply bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl shadow-lg;
+}
+
+.wallet-adapter-dropdown-list-item {
+  @apply px-4 py-2 hover:bg-stone-100 dark:hover:bg-stone-900 text-stone-900 dark:text-stone-50 border-b border-stone-100 dark:border-stone-900;
+}
+
+.wallet-adapter-dropdown-list-item:last-child {
+  @apply border-b-0;
+}
+
+/* Modal styling */
+.wallet-adapter-modal {
+  @apply bg-white dark:bg-stone-950;
+}
+
+.wallet-adapter-modal-overlay {
+  @apply bg-black/50;
+}
+
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-150;
+}
+
+button {
+  @apply active:scale-95 transition-transform duration-100;
+}
+
+/* Focus states for accessibility */
+a:focus-visible,
+button:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-stone-950 rounded;
+}
+
+/* Scrollbar styling for light mode */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-stone-100 dark:bg-stone-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-stone-300 dark:bg-stone-700 rounded-full hover:bg-stone-400 dark:hover:bg-stone-600;
+}
+
+/* Links */
+a {
+  @apply text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300;
+}

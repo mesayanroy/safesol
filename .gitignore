@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+target/
+dist/
+.anchor/
+.next/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Build outputs
+*.wasm
+*.zkey
+*.r1cs
+*.sym
+zk/build/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test
+coverage/
+.nyc_output/
+
+# Solana
+test-ledger/
+.anchor/
+
+# Misc
+*.pem
+*.key
+!verification_key.json

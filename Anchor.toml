@@ -1,0 +1,23 @@
+[toolchain]
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+privacy_pay = "HackDemo1111111111111111111111111111111111"
+zk_verifier = "Verifier1111111111111111111111111111111111"
+
+[programs.devnet]
+privacy_pay = "HackDemo1111111111111111111111111111111111"
+zk_verifier = "Verifier1111111111111111111111111111111111"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
