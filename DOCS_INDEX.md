@@ -100,7 +100,39 @@ Start here if you're new:
 
 ---
 
-## 🛠️ **Configuration Files**
+## � **Zero-Knowledge Proof System (NEW)**
+
+### Groth16 Implementation
+
+- **[GROTH16_GUIDE.md](GROTH16_GUIDE.md)** ⭐ START HERE
+  - Complete step-by-step guide
+  - Trusted setup process (15-20 min)
+  - Frontend integration
+  - On-chain verification
+  - Production deployment
+
+- **[GROTH16_QUICK_SETUP.md](GROTH16_QUICK_SETUP.md)** ⭐ CHECKLIST
+  - Quick reference checklist
+  - All commands in one place
+  - Troubleshooting
+  - Verification steps
+
+- **[PROOF_SYSTEM_ARCHITECTURE.md](PROOF_SYSTEM_ARCHITECTURE.md)**
+  - Deep-dive into how proofs work
+  - Data flow diagrams
+  - Security model
+  - Trusted setup details
+  - Performance metrics
+
+- **[zk/README.md](zk/README.md)**
+  - Circuit compilation
+  - Build instructions
+  - Testing circuits
+  - Production notes
+
+---
+
+## �🛠️ **Configuration Files**
 
 ### VS Code
 
@@ -175,7 +207,7 @@ Start here if you're new:
 
 ## 📖 **Reading Order**
 
-### For Hackathon Participants
+### For Hackathon Participants (No ZK)
 
 1. [WHAT_YOU_GOT.md](WHAT_YOU_GOT.md) - See what was built (5 min)
 2. [QUICKSTART.md](QUICKSTART.md) - Get it running (30 min)
@@ -184,14 +216,24 @@ Start here if you're new:
 
 **Total: 65 minutes to submission-ready**
 
+### For Production with Real Groth16 Proofs ⭐ NEW
+
+1. [GROTH16_GUIDE.md](GROTH16_GUIDE.md) - Complete setup guide (30 min)
+2. [GROTH16_QUICK_SETUP.md](GROTH16_QUICK_SETUP.md) - Use as checklist
+3. [PROOF_SYSTEM_ARCHITECTURE.md](PROOF_SYSTEM_ARCHITECTURE.md) - Understanding
+4. [zk/README.md](zk/README.md) - Technical details
+
+**Total: 1-2 hours for production-ready ZK system**
+
 ### For Deep Understanding
 
 1. [README.md](README.md) - Overview
 2. [ARCHITECTURE.md](ARCHITECTURE.md) - Technical details
-3. [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Complete breakdown
-4. Component READMEs - Deep dives
+3. [PROOF_SYSTEM_ARCHITECTURE.md](PROOF_SYSTEM_ARCHITECTURE.md) - ZK deep dive
+4. [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Complete breakdown
+5. Component READMEs - Deep dives
 
-**Total: 2 hours for full understanding**
+**Total: 3 hours for full understanding**
 
 ### For Production Deployment
 
@@ -208,9 +250,11 @@ Start here if you're new:
 
 ### Privacy & ZK
 
-- **Proof Generation**: [apps/web/lib/zk.ts](apps/web/lib/zk.ts)
+- **Mock Proofs (Dev)**: [apps/web/lib/zk.ts](apps/web/lib/zk.ts) (NEXT_PUBLIC_ENABLE_MOCK_PROOFS=true)
+- **Real Groth16 (Prod)**: [GROTH16_GUIDE.md](GROTH16_GUIDE.md) (NEXT_PUBLIC_ENABLE_MOCK_PROOFS=false)
 - **Circuits**: [zk/circuits/](zk/circuits/)
-- **Privacy Flow**: [ARCHITECTURE.md](ARCHITECTURE.md#-privacy-flow)
+- **Trusted Setup**: [GROTH16_QUICK_SETUP.md](GROTH16_QUICK_SETUP.md)
+- **Privacy Flow**: [PROOF_SYSTEM_ARCHITECTURE.md](PROOF_SYSTEM_ARCHITECTURE.md)
 
 ### Solana Programs
 

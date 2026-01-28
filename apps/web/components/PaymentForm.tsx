@@ -50,10 +50,10 @@ const PaymentForm: FC<PaymentFormProps> = ({
   const isDisabled = loading || !connected;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {/* Recipient Input */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
           <label className="block text-sm font-semibold text-stone-900 dark:text-stone-50">
             Recipient Address
           </label>
@@ -64,7 +64,7 @@ const PaymentForm: FC<PaymentFormProps> = ({
           value={recipient}
           onChange={(e) => setRecipient(e.target.value)}
           placeholder="Enter Solana address"
-          className={`w-full px-4 py-3 rounded-xl border transition-colors text-stone-900 dark:text-stone-50 placeholder-stone-400 dark:placeholder-stone-600 focus:outline-none ${
+          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border transition-colors text-sm sm:text-base text-stone-900 dark:text-stone-50 placeholder-stone-400 dark:placeholder-stone-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
             errors.recipient
               ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950'
               : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 focus:border-blue-500'
@@ -72,13 +72,13 @@ const PaymentForm: FC<PaymentFormProps> = ({
           disabled={isDisabled}
         />
         {errors.recipient && (
-          <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.recipient}</p>
+          <p className="text-xs text-red-600 dark:text-red-400 mt-1.5">{errors.recipient}</p>
         )}
       </div>
 
       {/* Amount Input */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
           <label className="block text-sm font-semibold text-stone-900 dark:text-stone-50">
             Amount (SOL)
           </label>
@@ -91,7 +91,7 @@ const PaymentForm: FC<PaymentFormProps> = ({
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0.00"
-          className={`w-full px-4 py-3 rounded-xl border transition-colors text-stone-900 dark:text-stone-50 placeholder-stone-400 dark:placeholder-stone-600 focus:outline-none ${
+          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border transition-colors text-sm sm:text-base text-stone-900 dark:text-stone-50 placeholder-stone-400 dark:placeholder-stone-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
             errors.amount
               ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950'
               : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 focus:border-blue-500'
@@ -99,13 +99,13 @@ const PaymentForm: FC<PaymentFormProps> = ({
           disabled={isDisabled}
         />
         {errors.amount && (
-          <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.amount}</p>
+          <p className="text-xs text-red-600 dark:text-red-400 mt-1.5">{errors.amount}</p>
         )}
       </div>
 
       {/* Privacy Notice */}
-      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4 space-y-2">
-        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:p-4 space-y-2">
+        <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100">
           🔐 Your payment is private by design
         </p>
         <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
@@ -117,8 +117,8 @@ const PaymentForm: FC<PaymentFormProps> = ({
 
       {/* Proof Status */}
       {proofStatus !== 'idle' && (
-        <div className="flex items-center justify-between p-3 bg-stone-100 dark:bg-stone-900 rounded-xl">
-          <span className="text-sm text-stone-600 dark:text-stone-400">ZK Proof Status</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 p-3 bg-stone-100 dark:bg-stone-900 rounded-xl">
+          <span className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">ZK Proof Status</span>
           <ProofStatusBadge status={proofStatus} />
         </div>
       )}
@@ -127,7 +127,7 @@ const PaymentForm: FC<PaymentFormProps> = ({
       <button
         type="submit"
         disabled={isDisabled || Object.keys(errors).length > 0}
-        className={`w-full py-3 rounded-xl font-semibold transition-all ${
+        className={`w-full py-3 sm:py-3.5 rounded-xl font-semibold transition-all text-sm sm:text-base ${
           isDisabled || Object.keys(errors).length > 0
             ? 'bg-stone-200 dark:bg-stone-800 text-stone-500 dark:text-stone-500 cursor-not-allowed'
             : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg active:scale-95'
@@ -150,12 +150,19 @@ const PaymentForm: FC<PaymentFormProps> = ({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Generating proof...
+            <span className="hidden sm:inline">Generating proof...</span>
+            <span className="sm:hidden">Generating...</span>
           </span>
         ) : !connected ? (
-          'Connect Wallet to Continue'
+          <>
+            <span className="hidden sm:inline">Connect Wallet to Continue</span>
+            <span className="sm:hidden">Connect Wallet</span>
+          </>
         ) : (
-          'Generate Proof & Send Payment'
+          <>
+            <span className="hidden sm:inline">Generate Proof & Send Payment</span>
+            <span className="sm:hidden">Send Payment</span>
+          </>
         )}
       </button>
 

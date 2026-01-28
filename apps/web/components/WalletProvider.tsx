@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useMemo, useCallback } from 'react';
+import { FC, ReactNode, useMemo, useCallback, useEffect } from 'react';
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,
@@ -14,7 +14,18 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 const WalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const network = WalletAdapterNetwork.Devnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  
+  // Use custom RPC endpoint or fallback to Solana public
+  const endpoint = useMemo(() => {
+    const customRpc = process.env.NEXT_PUBLIC_RPC_ENDPOINT;
+    if (customRpc) {
+      console.log('[WalletProvider] Using custom RPC:', customRpc);
+      return customRpc;
+    }
+    const defaultEndpoint = clusterApiUrl(network);
+    console.log('[WalletProvider] Using default RPC:', defaultEndpoint);
+    return defaultEndpoint;
+  }, []);
 
   // Initialize wallets with Phantom FIRST (priority ordering)
   // Phantom must come before other wallets to ensure proper detection
@@ -50,22 +61,29 @@ const WalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const handleWalletError = useCallback((error: Error) => {
     console.error('[WalletProvider] Wallet Error:', {
       message: error.message,
-      stack: error.stack,
+      code: (error as any).code,
       timestamp: new Date().toISOString(),
     });
   }, []);
 
   // Debug: Log network configuration
-  console.log('[WalletProvider] Initialized with:', {
-    network: network,
-    endpoint: endpoint,
-    walletCount: wallets.length,
-    walletNames: wallets.map((w) => w.name),
-  });
+  useEffect(() => {
+    console.log('[WalletProvider] Network Configuration:', {
+      network: network,
+      endpoint: endpoint,
+      walletCount: wallets.length,
+      walletNames: wallets.map((w) => w.name),
+      autoConnect: process.env.NEXT_PUBLIC_WALLET_AUTO_CONNECT === 'true',
+    });
+  }, [endpoint, network, wallets]);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <SolanaWalletProvider wallets={wallets} autoConnect={false} onError={handleWalletError}>
+      <SolanaWalletProvider 
+        wallets={wallets} 
+        autoConnect={process.env.NEXT_PUBLIC_WALLET_AUTO_CONNECT === 'true'}
+        onError={handleWalletError}
+      >
         <WalletModalProvider>{children}</WalletModalProvider>
       </SolanaWalletProvider>
     </ConnectionProvider>

@@ -24,9 +24,76 @@ body {
   @apply bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-50 transition-colors duration-200;
 }
 
+/* Smooth scroll animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced text styling */
+@layer components {
+  .heading-xl {
+    @apply text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent;
+  }
+
+  .heading-lg {
+    @apply text-3xl font-bold text-white;
+  }
+
+  .heading-md {
+    @apply text-2xl font-bold text-white;
+  }
+
+  .text-muted {
+    @apply text-slate-400 text-sm;
+  }
+
+  .text-label {
+    @apply text-slate-300 text-sm font-medium;
+  }
+
+  .card-elevated {
+    @apply bg-slate-800/50 border border-slate-700/50 rounded-lg backdrop-blur-sm hover:border-slate-600 transition-all duration-300;
+  }
+
+  .button-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg px-6 py-2 transition-all duration-300 shadow-lg hover:shadow-blue-500/30;
+  }
+
+  .button-secondary {
+    @apply bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium rounded-lg px-6 py-2 transition-all duration-300;
+  }
+}
+
 /* Wallet Adapter Styling - Professional minimal */
 .wallet-adapter-button {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-4 py-2 transition-colors duration-200;
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-4 py-2 transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-blue-500/30;
 }
 
 .wallet-adapter-button:hover {

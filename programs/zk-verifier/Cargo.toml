@@ -3,16 +3,20 @@ name = "zk-verifier"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "zk_verifier"
 
 [features]
+idl-build = ["anchor-lang/idl-build"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
-default = []
+growth16 = []
+default = ["growth16"]
 
 [dependencies]
-anchor-lang = "0.29.0"
+anchor-lang = "0.32.1"

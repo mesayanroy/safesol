@@ -40,19 +40,17 @@ export interface PrivatePaymentParams {
   amount: BN;
   recipient: PublicKey;
   merkleRoot: Buffer;
+  nullifierSeed?: Buffer;
   proofBytes?: Buffer; // optional pre-serialized proof
 }
 
 /**
  * Find nullifier PDA
- * Seeds: ["nullifier", nullifier_hash]
+ * Seeds: ["nullifier", nullifier_seed]
  */
-export function findNullifierPDA(nullifier: string): [PublicKey, number] {
+export function findNullifierPDA(nullifierSeed: Buffer): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [
-      Buffer.from('nullifier'),
-      Buffer.from(nullifier.slice(0, 32)), // Hash first 32 bytes
-    ],
+    [Buffer.from('nullifier'), nullifierSeed],
     PRIVACY_PAY_PROGRAM_ID
   );
 }
@@ -78,29 +76,113 @@ export async function buildPrivatePaymentTx(
   provider: AnchorProvider,
   params: PrivatePaymentParams
 ): Promise<Transaction> {
-  const program = new Program(idl as any, PRIVACY_PAY_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
-  const [nullifierPDA] = findNullifierPDA(params.proof.nullifier);
+  // Create nullifier seed from the nullifier hash
+  const nullifierSeed = params.nullifierSeed ?? Buffer.from(params.proof.nullifier.slice(0, 64), 'hex');
+  const [nullifierPDA] = findNullifierPDA(nullifierSeed);
   const [statePDA] = findStatePDA();
 
-  // Anchor accepts Buffer for bytes and fixed arrays; avoid Array.from to keep Blob encoding happy
-  const merkleRootBytes = Buffer.from(params.merkleRoot);
-  const proofBytes = params.proofBytes ?? serializeProofForSolana(params.proof);
+  // Serialize proof with error handling
+  let proofBytes: Buffer;
+  try {
+    proofBytes = params.proofBytes ?? serializeProofForSolana(params.proof);
+    console.log('[Solana] ✓ Proof serialized successfully:', {
+      size: proofBytes.length,
+      isBuffer: Buffer.isBuffer(proofBytes),
+    });
+  } catch (err) {
+    console.error('[Solana] ✗ Failed to serialize proof:', err);
+    throw new Error(`Proof serialization failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
-  const tx = await program.methods
-    .privateSpend(merkleRootBytes, params.amount, proofBytes)
-    .accounts({
-      payer: provider.wallet.publicKey,
-      state: statePDA,
-      nullifier: nullifierPDA,
-      recipient: params.recipient,
-      zkVerifier: ZK_VERIFIER_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-    })
-    .transaction();
+  // Verify proof buffer size
+  if (proofBytes.length !== 256) {
+    throw new Error(`Invalid proof size: expected 256 bytes, got ${proofBytes.length}`);
+  }
 
-  return tx;
+  // Prepare merkle root as fixed-size array [u8; 32]
+  const merkleRootArray = Array.from(params.merkleRoot);
+  if (merkleRootArray.length !== 32) {
+    throw new Error(`Invalid merkle root size: expected 32 bytes, got ${merkleRootArray.length}`);
+  }
+  
+  // Prepare nullifier seed as fixed-size array [u8; 32]
+  const nullifierSeedArray = Array.from(nullifierSeed);
+  if (nullifierSeedArray.length < 32) {
+    // Pad to 32 bytes if needed
+    while (nullifierSeedArray.length < 32) {
+      nullifierSeedArray.push(0);
+    }
+  }
+  const nullifierSeed32 = nullifierSeedArray.slice(0, 32);
+  
+  // Convert public signals to Vec<[u8; 32]>
+  // Each signal is a bigint that needs to be converted to a 32-byte array
+  const publicSignalsArrays = params.proof.publicSignals.map(signal => {
+    const sigBigInt = BigInt(signal);
+    // Truncate to 64 bits to fit in u64 range
+    const truncated = sigBigInt & BigInt('0xFFFFFFFFFFFFFFFF');
+    
+    // Convert to 32-byte array (big-endian)
+    const buf = Buffer.alloc(32);
+    buf.writeBigUInt64BE(truncated, 24); // Write to last 8 bytes
+    return Array.from(buf);
+  });
+
+  console.log('[Solana] Building transaction with:', {
+    proofSize: proofBytes.length,
+    merkleRootSize: merkleRootArray.length,
+    nullifierSeedSize: nullifierSeed32.length,
+    publicSignalsCount: publicSignalsArrays.length,
+    nullifierPDA: nullifierPDA.toString(),
+    amount: params.amount.toString(),
+    programId: program.programId.toString(),
+  });
+
+  // Build the instruction with proper types
+  // Pass proof as Buffer (bytes type), others as arrays
+  try {
+    const tx = await program.methods
+      .privateSpend(
+        merkleRootArray,           // [u8; 32]
+        params.amount,              // u64
+        Buffer.from(proofBytes),    // bytes
+        nullifierSeed32,            // [u8; 32]
+        publicSignalsArrays         // Vec<[u8; 32]>
+      )
+      .accounts({
+        payer: provider.wallet.publicKey,
+        state: statePDA,
+        nullifier: nullifierPDA,
+        recipient: params.recipient,
+        zkVerifier: ZK_VERIFIER_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+      })
+      .transaction();
+
+    console.log('[Solana] ✓ Transaction built successfully:', {
+      instructionCount: tx.instructions.length,
+      signers: tx.signatures.length,
+    });
+
+    return tx;
+  } catch (buildErr) {
+    console.error('[Solana] ✗ Transaction build error - FULL DETAILS:', {
+      error: buildErr,
+      message: buildErr instanceof Error ? buildErr.message : String(buildErr),
+      stack: buildErr instanceof Error ? buildErr.stack : undefined,
+      programId: program.programId.toString(),
+      accounts: {
+        payer: provider.wallet.publicKey.toString(),
+        state: statePDA.toString(),
+        nullifier: nullifierPDA.toString(),
+        recipient: params.recipient.toString(),
+      },
+    });
+    throw new Error(`Transaction build failed: ${buildErr instanceof Error ? buildErr.message : String(buildErr)}`);
+  }
 }
 
 /**
@@ -110,7 +192,7 @@ export async function initializeState(
   provider: AnchorProvider,
   initialRoot: Buffer
 ): Promise<string> {
-  const program = new Program(idl as any, PRIVACY_PAY_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
   const [statePDA] = findStatePDA();
 
   const tx = await program.methods
@@ -130,11 +212,11 @@ export async function initializeState(
  * Fetch current Merkle root from on-chain state
  */
 export async function getCurrentMerkleRoot(provider: AnchorProvider): Promise<Buffer> {
-  const program = new Program(idl as any, PRIVACY_PAY_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
   const [statePDA] = findStatePDA();
 
   try {
-    const state = await program.account.state.fetch(statePDA);
+    const state = await (program.account as any).state.fetch(statePDA);
     return Buffer.from(state.merkleRoot);
   } catch (err) {
     console.log('[Solana] State not initialized, using genesis root');
@@ -145,8 +227,8 @@ export async function getCurrentMerkleRoot(provider: AnchorProvider): Promise<Bu
 /**
  * Check if nullifier has been used (prevent double-spend)
  */
-export async function isNullifierUsed(connection: Connection, nullifier: string): Promise<boolean> {
-  const [nullifierPDA] = findNullifierPDA(nullifier);
+export async function isNullifierUsed(connection: Connection, nullifierSeed: Buffer): Promise<boolean> {
+  const [nullifierPDA] = findNullifierPDA(nullifierSeed);
   const accountInfo = await connection.getAccountInfo(nullifierPDA);
   return accountInfo !== null;
 }

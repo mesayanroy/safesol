@@ -3,16 +3,23 @@ name = "privacy-pay"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "privacy_pay"
 
 [features]
+idl-build = ["anchor-lang/idl-build"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
+custom-heap = []
+custom-panic = []
+anchor-debug = []
 default = []
 
 [dependencies]
-anchor-lang = "0.29.0"
+anchor-lang = "0.32.1"
+anyhow = "1.0.100"

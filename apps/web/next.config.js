@@ -1,6 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
+  
+  // Production optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
+
+  // Environment variables exposed to browser
+  env: {
+    NEXT_PUBLIC_NETWORK: process.env.NEXT_PUBLIC_NETWORK || 'devnet',
+  },
+
   webpack: (config, { isServer }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -22,6 +36,7 @@ const nextConfig = {
 
     return config;
   },
+  
   transpilePackages: [
     '@solana/wallet-adapter-react',
     '@solana/wallet-adapter-react-ui',

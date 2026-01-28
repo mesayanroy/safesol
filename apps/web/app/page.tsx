@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PublicKey } from '@solana/web3.js';
 import { BN, AnchorProvider } from '@coral-xyz/anchor';
 import PaymentForm from '@/components/PaymentForm';
 import TransactionHistory from '@/components/TransactionHistory';
+import { TransactionUI, TransactionStep } from '@/components/TransactionUI';
 import { LandingHero, HowItWorks } from '@/components/Landing';
 import { PrivacyCard, WalletStatus, StepIndicator } from '@/components/UI';
 import { WalletDebugPanel } from '@/components/WalletDebugPanel';
@@ -28,6 +29,43 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [showApp, setShowApp] = useState(false);
   const [connectionError, setConnectionError] = useState<string>('');
+  const [transactionSteps, setTransactionSteps] = useState<TransactionStep[]>([
+    { id: 'secret', label: 'Generate Secret', description: 'Creating commitment', status: 'idle' },
+    { id: 'merkle', label: 'Merkle Proof', description: 'Fetching from Light Protocol', status: 'idle' },
+    { id: 'zk-proof', label: 'ZK Proof', description: 'Groth16 proof generation', status: 'idle' },
+    { id: 'build-tx', label: 'Build Transaction', description: 'Preparing Solana transaction', status: 'idle' },
+    { id: 'sign-tx', label: 'Sign & Send', description: 'Wallet signature and submission', status: 'idle' },
+    { id: 'confirm', label: 'Confirm', description: 'Waiting for confirmation', status: 'idle' },
+  ]);
+
+  // Save transactions to localStorage
+  useEffect(() => {
+    if (txSignature && wallet.publicKey) {
+      const key = `txs_${wallet.publicKey.toString()}`;
+      const existing = localStorage.getItem(key);
+      const txs = existing ? JSON.parse(existing) : [];
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      txs.push({
+        signature: txSignature,
+        amount: 0, // Would come from form
+        timestamp: currentTime,
+        status: 'confirmed',
+      });
+      
+      localStorage.setItem(key, JSON.stringify(txs));
+    }
+  }, [txSignature, wallet.publicKey]);
+
+  const updateStep = (stepId: string, status: TransactionStep['status'], error?: string) => {
+    setTransactionSteps(prev =>
+      prev.map(step =>
+        step.id === stepId
+          ? { ...step, status, error }
+          : step
+      )
+    );
+  };
 
   const handlePrivatePayment = async (recipient: string, amount: number) => {
     if (!wallet.publicKey || !wallet.signTransaction) {
@@ -44,80 +82,251 @@ export default function Home() {
     setConnectionError('');
     setLoading(true);
     setProofStatus('generating');
+    
     try {
-      console.log('[App] Starting private payment...', {
-        wallet: wallet.publicKey?.toString(),
-        connected: wallet.connected,
+      // Reset steps
+      setTransactionSteps(prev => prev.map(s => ({ ...s, status: 'idle', error: undefined })));
+
+      console.log('[App] Starting private payment flow...', {
+        recipient,
+        amount: `${amount} SOL`,
+        wallet: wallet.publicKey.toString(),
       });
 
-      console.log('[App] Starting ZK proof generation...');
-
-      // 1. Generate ZK proof (MOCKED for hackathon)
+      // Step 1: Generate secret and commitment
+      updateStep('secret', 'active');
+      console.log('[App] Step 1: Generating secret and commitment...');
       const secret = generateSecret();
-      const proof = await generateSpendProof(
-        {
-          secret,
-          amount: BigInt(amount * 1e9), // Convert to lamports
-          balance: BigInt(10 * 1e9), // Mock balance
-          merkleProof: [BigInt(0), BigInt(0), BigInt(0)],
-          merkleRoot: BigInt(0),
-          recipient,
-        },
-        true // Use mock proof
-      );
+      const { generateCommitment } = await import('@/lib/zk');
+      const commitment = await generateCommitment(secret, BigInt(Math.floor(amount * 1e9)));
+      updateStep('secret', 'complete');
+      console.log('[App] ✓ Commitment generated:', commitment.toString().slice(0, 16) + '...');
 
-      console.log('[App] ✓ ZK proof generated:', proof.nullifier);
+      // Step 2: Initialize Light Protocol client and get Merkle proof
+      updateStep('merkle', 'active');
+      console.log('[App] Step 2: Getting Merkle proof from Light Protocol...');
+      const { LightProtocolClient } = await import('@/lib/light');
+      const lightClient = new LightProtocolClient(connection);
+      
+      const merkleProof = await lightClient.getCommitmentProof(commitment.toString());
+      const currentRoot = await lightClient.getCurrentRoot();
+      updateStep('merkle', 'complete');
+      console.log('[App] ✓ Merkle proof retrieved, root:', currentRoot.slice(0, 16) + '...');
+
+      // Step 3: Calculate Merkle path (this is part of zk-proof preparation)
+      console.log('[App] Step 3: Calculating Merkle path indices...');
+      const { calculateMerklePath } = await import('@/lib/zk');
+      const { path, indices } = await calculateMerklePath(
+        commitment,
+        merkleProof.map(p => BigInt(p))
+      );
+      console.log('[App] ✓ Path calculated with', path.length, 'levels');
+
+      // Step 4: Generate ZK proof
+      updateStep('zk-proof', 'active');
+      console.log('[App] Step 4: Generating zero-knowledge proof...');
+      
+      const useMockProofs = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROOFS === 'true';
+      const proofMode = useMockProofs ? 'MOCK (development)' : 'REAL Groth16 (production)';
+      console.log('[App] Proof generation mode:', proofMode);
+      
+      let proof;
+      try {
+        console.log('[App] Starting ZK proof generation...');
+        proof = await generateSpendProof(
+          {
+            secret,
+            amount: BigInt(Math.floor(amount * 1e9)),
+            balance: BigInt(100 * 1e9), // TODO: Get actual balance
+            merkleProof: path,
+            merkleRoot: BigInt('0x' + (currentRoot.startsWith('0x') ? currentRoot.slice(2) : currentRoot)),
+            recipient,
+          },
+          useMockProofs
+        );
+        
+        if (!proof || !proof.nullifier || !proof.publicSignals) {
+          throw new Error('Invalid proof structure returned from generateSpendProof');
+        }
+        
+        console.log('[App] ✓ ZK proof generated successfully');
+      } catch (proofErr) {
+        console.error('[App] ✗ Proof generation failed:', proofErr);
+        const errorMsg = proofErr instanceof Error ? proofErr.message : String(proofErr);
+        updateStep('zk-proof', 'error', errorMsg);
+        throw new Error(`Proof generation failed: ${errorMsg}`);
+      }
+      
+      updateStep('zk-proof', 'complete');
+      console.log('[App] ✓ ZK proof complete');
+      console.log('[App]   - Nullifier:', proof.nullifier.slice(0, 16) + '...');
+      console.log('[App]   - Public signals:', proof.publicSignals.length);
       setProofStatus('generated');
 
-      // 2. Build transaction
-      console.log('[App] Building private payment transaction...');
-      const provider = new AnchorProvider(connection, wallet as any, { commitment: 'confirmed' });
+      // Step 5: Verify proof locally
+      console.log('[App] Step 5: Verifying proof locally...');
+      const isValid = await lightClient.verifyCompressedProof(
+        commitment.toString(),
+        merkleProof,
+        currentRoot
+      );
+      
+      if (!isValid) {
+        throw new Error('Local proof verification failed - Merkle root mismatch');
+      }
+      console.log('[App] ✓ Proof verified against current Merkle root');
 
-      const tx = await buildPrivatePaymentTx(provider, {
-        proof,
-        amount: new BN(amount * 1e9),
-        recipient: new PublicKey(recipient),
-        merkleRoot: Buffer.alloc(32, 0),
+      // Step 6: Build transaction
+      updateStep('build-tx', 'active');
+      console.log('[App] Step 6: Building Solana transaction...');
+      
+      const provider = new AnchorProvider(connection, wallet as any, { 
+        commitment: 'confirmed',
+        preflightCommitment: 'confirmed'
       });
 
-      console.log('[App] ✓ Transaction built, awaiting signature...');
-      setProofStatus('submitted');
+      // Convert merkle root to 32-byte buffer
+      let merkleRootBuffer: Buffer;
+      const rootHex = currentRoot.startsWith('0x') ? currentRoot.slice(2) : currentRoot;
+      if (rootHex.length === 64) {
+        merkleRootBuffer = Buffer.from(rootHex, 'hex');
+      } else {
+        merkleRootBuffer = Buffer.alloc(32, 0);
+      }
 
-      // 3. Send transaction with proper error handling
-      // Phantom requires explicit interaction here
+      let tx;
+      try {
+        console.log('[App] Serializing proof for Solana...');
+        tx = await buildPrivatePaymentTx(provider, {
+          proof,
+          amount: new BN(Math.floor(amount * 1e9)),
+          recipient: new PublicKey(recipient),
+          merkleRoot: merkleRootBuffer,
+        });
+        
+        // Ensure transaction has recent blockhash and fee payer
+        if (!tx.recentBlockhash) {
+          console.log('[App] Setting recent blockhash...');
+          const { blockhash } = await connection.getLatestBlockhash('confirmed');
+          tx.recentBlockhash = blockhash;
+        }
+        if (!tx.feePayer) {
+          tx.feePayer = wallet.publicKey;
+        }
+        
+        console.log('[App] ✓ Transaction built successfully');
+      } catch (txErr) {
+        const txErrMsg = txErr instanceof Error ? txErr.message : String(txErr);
+        console.error('[App] Transaction build failed:', txErrMsg);
+        throw new Error(`Transaction build failed: ${txErrMsg}`);
+      }
+      
+      updateStep('build-tx', 'complete');
+
+      // Step 7: Submit transaction
+      updateStep('sign-tx', 'active');
+      console.log('[App] Step 7: Submitting transaction to Solana...');
+      console.log('[App] Transaction details:', {
+        feePayer: tx.feePayer?.toString(),
+        recentBlockhash: tx.recentBlockhash,
+        instructionCount: tx.instructions.length,
+        signers: tx.signatures.length,
+      });
+      
       let signature: string;
+      
       try {
         signature = await wallet.sendTransaction(tx, connection, {
           skipPreflight: false,
           preflightCommitment: 'confirmed',
+          maxRetries: 3,
         });
+        updateStep('sign-tx', 'complete');
         console.log('[App] ✓ Transaction sent, signature:', signature);
       } catch (signErr: any) {
-        console.error('[App] ✗ Signature rejected by wallet:', {
-          error: signErr.message,
+        // Log full error details
+        console.error('[App] ✗ Transaction submission failed - FULL ERROR:', {
+          message: signErr.message,
           code: signErr.code,
-          walletName: wallet.wallet?.adapter.name,
+          logs: signErr.logs,
+          stack: signErr.stack,
+          toString: signErr.toString(),
         });
-        throw new Error(
-          `${wallet.wallet?.adapter.name || 'Wallet'} signature rejected: ${signErr.message || 'User cancelled'}`
-        );
+        
+        // Extract meaningful error message
+        let errorMessage = 'Transaction failed';
+        if (signErr.message) {
+          errorMessage = signErr.message;
+        } else if (signErr.toString) {
+          errorMessage = signErr.toString();
+        }
+        
+        // Check for common error patterns
+        if (errorMessage.includes('0x1')) {
+          errorMessage = 'Insufficient funds for transaction';
+        } else if (errorMessage.includes('rejected')) {
+          errorMessage = 'Transaction rejected by wallet';
+        } else if (errorMessage.includes('blockhash')) {
+          errorMessage = 'Transaction expired - please retry';
+        } else if (errorMessage.includes('simulate')) {
+          errorMessage = 'Transaction simulation failed - check program logs';
+        }
+        
+        updateStep('sign-tx', 'error', errorMessage);
+        throw new Error(errorMessage);
       }
 
-      // Confirm transaction
-      console.log('[App] Confirming transaction...');
-      await connection.confirmTransaction(signature, 'confirmed');
-      console.log('[App] ✓ Transaction confirmed');
+      // Step 8: Confirm transaction
+      updateStep('confirm', 'active');
+      console.log('[App] Step 8: Confirming transaction...');
+      const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+      
+      if (confirmation.value.err) {
+        updateStep('confirm', 'error', 'Transaction failed on-chain');
+        throw new Error('Transaction failed on-chain: ' + JSON.stringify(confirmation.value.err));
+      }
+      
+      updateStep('confirm', 'complete');
+      console.log('[App] ✓ Transaction confirmed on-chain');
+
+      // Step 9: Update Light Protocol state
+      console.log('[App] Step 9: Updating Light Protocol state...');
+      await lightClient.storeCompressedCommitment(commitment.toString(), wallet.publicKey);
+      console.log('[App] ✓ Commitment stored in compressed tree');
 
       setTxSignature(signature);
       setProofStatus('confirmed');
 
-      alert(`Payment sent! Tx: ${signature}`);
+      console.log('[App] ✅ Payment complete!');
+      console.log('[App]   - Explorer:', getExplorerUrl(signature));
+      
     } catch (err: any) {
-      console.error('[App] Payment failed:', err);
+      console.error('[App] ❌ Payment failed:', err);
       setProofStatus('error');
-      const errorMsg = err?.message || 'Transaction failed. Please try again.';
-      setConnectionError(errorMsg);
-      setTimeout(() => setConnectionError(''), 5000);
+      
+      // Mark failed step
+      const errorMsg = err.message || 'Unknown error';
+      const failedSteps = transactionSteps.filter(s => s.status === 'active' || s.status === 'idle');
+      if (failedSteps.length > 0) {
+        updateStep(failedSteps[0].id, 'error', errorMsg);
+      }
+      
+      let userMsg = 'Transaction failed. Please try again.';
+      if (errorMsg.includes('rejected')) {
+        userMsg = 'Transaction was rejected by your wallet.';
+      } else if (errorMsg.includes('Merkle')) {
+        userMsg = 'Merkle proof verification failed. Please retry.';
+      } else if (errorMsg.includes('Blob') || errorMsg.includes('serializ')) {
+        userMsg = `Proof serialization error: ${errorMsg}. Please check browser console.`;
+      } else if (errorMsg.includes('invalid') || errorMsg.includes('Invalid')) {
+        userMsg = `Invalid data: ${errorMsg}`;
+      } else {
+        userMsg = errorMsg;
+      }
+      
+      console.error('[App] ✗ Transaction error:', errorMsg);
+      setConnectionError(userMsg);
+      setTimeout(() => setConnectionError(''), 8000);
     } finally {
       setLoading(false);
     }
@@ -131,16 +340,16 @@ export default function Home() {
         <HowItWorks />
 
         {/* Privacy Features */}
-        <section id="app" className="py-24 bg-stone-50 dark:bg-stone-900">
-          <div className="max-w-5xl mx-auto px-4">
-            <h2 className="text-4xl font-bold text-stone-900 dark:text-stone-50 text-center mb-4">
+        <section id="app" className="py-12 sm:py-16 lg:py-24 bg-stone-50 dark:bg-stone-900">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 dark:text-stone-50 text-center mb-3 sm:mb-4">
               Privacy by Design
             </h2>
-            <p className="text-center text-stone-600 dark:text-stone-400 mb-16 max-w-2xl mx-auto">
+            <p className="text-center text-sm sm:text-base text-stone-600 dark:text-stone-400 mb-10 sm:mb-16 max-w-2xl mx-auto">
               Every payment is protected at the cryptographic level, not just the application level.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
               <PrivacyCard
                 icon="🛡️"
                 title="Amount Proof"
@@ -176,7 +385,7 @@ export default function Home() {
             <div className="text-center">
               <button
                 onClick={() => setShowApp(true)}
-                className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors inline-block"
+                className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors inline-block text-sm sm:text-base"
               >
                 Launch App →
               </button>
@@ -193,14 +402,14 @@ export default function Home() {
       {/* Debug Panel - visible with ?debug=1 param */}
       <WalletDebugPanel show={isDebugMode} />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Error Banner */}
         {connectionError && (
-          <div className="mb-6 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center justify-between">
-            <span className="text-red-800 dark:text-red-200 text-sm">{connectionError}</span>
+          <div className="mb-4 sm:mb-6 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-3 sm:p-4 flex items-start sm:items-center justify-between gap-2">
+            <span className="text-red-800 dark:text-red-200 text-xs sm:text-sm flex-1">{connectionError}</span>
             <button
               onClick={() => setConnectionError('')}
-              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex-shrink-0 text-lg sm:text-xl"
             >
               ✕
             </button>
@@ -208,34 +417,38 @@ export default function Home() {
         )}
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-12">
-          <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-12">
+          <div className="w-full sm:w-auto">
             <button
               onClick={() => setShowApp(false)}
-              className="text-blue-600 hover:text-blue-700 font-semibold mb-2 flex items-center gap-1"
+              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold mb-2 flex items-center gap-1 text-sm sm:text-base"
             >
               ← Back to Info
             </button>
-            <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-50">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-900 dark:text-stone-50">
               Private Payments
             </h1>
-            <p className="text-stone-600 dark:text-stone-400">
+            <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400 mt-1">
               Send payments that prove your solvency without revealing amounts
             </p>
           </div>
-          <div className="flex flex-col items-end gap-4">
-            <WalletMultiButton />
+          <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-none w-full sm:w-auto">
+              <WalletMultiButton className="!w-full sm:!w-auto" />
+            </div>
             {wallet.publicKey && (
-              <WalletStatus connected={true} address={wallet.publicKey.toString()} />
+              <div className="hidden sm:block">
+                <WalletStatus connected={true} address={wallet.publicKey.toString()} />
+              </div>
             )}
           </div>
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
           {/* Payment Form */}
-          <div className="lg:col-span-2 bg-white dark:bg-stone-950 rounded-2xl p-8 border border-stone-200 dark:border-stone-800 shadow-sm">
-            <h2 className="text-2xl font-semibold text-stone-900 dark:text-stone-50 mb-8">
+          <div className="lg:col-span-2 bg-white dark:bg-stone-950 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <h2 className="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-50 mb-4 sm:mb-6 lg:mb-8">
               Send Private Payment
             </h2>
             <PaymentForm
@@ -247,8 +460,8 @@ export default function Home() {
           </div>
 
           {/* Proof Flow Sidebar */}
-          <div className="bg-white dark:bg-stone-950 rounded-2xl p-8 border border-stone-200 dark:border-stone-800 shadow-sm">
-            <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-50 mb-6">
+          <div className="bg-white dark:bg-stone-950 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <h3 className="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-50 mb-4 sm:mb-6">
               Proof Flow
             </h3>
             <StepIndicator
@@ -270,13 +483,13 @@ export default function Home() {
 
         {/* Transaction Result */}
         {txSignature && (
-          <div className="bg-white dark:bg-stone-950 rounded-2xl p-8 border border-stone-200 dark:border-stone-800 shadow-sm mb-8">
-            <h2 className="text-2xl font-semibold text-stone-900 dark:text-stone-50 mb-6">
+          <div className="bg-white dark:bg-stone-950 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-stone-200 dark:border-stone-800 shadow-sm mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-50 mb-4 sm:mb-6">
               ✓ Payment Confirmed
             </h2>
-            <div className="space-y-4">
-              <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl p-4">
-                <p className="text-green-700 dark:text-green-300 text-sm font-mono break-all">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl p-3 sm:p-4">
+                <p className="text-green-700 dark:text-green-300 text-xs sm:text-sm font-mono break-all">
                   {txSignature}
                 </p>
               </div>
@@ -284,11 +497,11 @@ export default function Home() {
                 href={getExplorerUrl(txSignature)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-center transition"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 sm:py-3 rounded-xl text-center transition text-sm sm:text-base"
               >
                 View on Solana Explorer →
               </a>
-              <div className="grid grid-cols-2 gap-4 text-sm mt-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm mt-4 sm:mt-6">
                 <div>
                   <p className="text-stone-600 dark:text-stone-400 mb-1">ZK Proof</p>
                   <p className="text-green-600 dark:text-green-400 font-semibold">✓ Verified</p>
@@ -314,23 +527,28 @@ export default function Home() {
         <TransactionHistory />
 
         {/* Info Box */}
-        <div className="mt-8 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-2xl p-6">
-          <h3 className="text-blue-900 dark:text-blue-100 font-semibold mb-3">
+        <div className="mt-6 sm:mt-8 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+          <h3 className="text-blue-900 dark:text-blue-100 font-semibold mb-2 sm:mb-3 text-sm sm:text-base">
             ℹ️ Development Mode
           </h3>
-          <ul className="text-blue-800 dark:text-blue-200 text-sm space-y-2">
+          <ul className="text-blue-800 dark:text-blue-200 text-xs sm:text-sm space-y-1.5 sm:space-y-2">
             <li>
               • Mock ZK proofs for rapid testing (real Circom circuits ready in /zk/circuits/)
             </li>
             <li>• Light Protocol integration ready for production compression</li>
             <li>
               • Deploy to devnet:{' '}
-              <code className="bg-black/20 px-2 py-1 rounded text-xs">pnpm run deploy</code>
+              <code className="bg-black/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs">
+                pnpm run deploy
+              </code>
             </li>
             <li>• Replace mock verifier with real Groth16 proof system</li>
           </ul>
         </div>
       </div>
+
+      {/* Transaction Progress UI */}
+      {loading && <TransactionUI steps={transactionSteps} txSignature={txSignature} loading={loading} />}
     </main>
   );
 }

@@ -4,9 +4,8 @@ pub mod instructions;
 pub mod state;
 
 use instructions::*;
-use state::*;
 
-declare_id!("HackDemo1111111111111111111111111111111111");
+declare_id!("11111111111111111111111111111111");
 
 #[program]
 pub mod privacy_pay {
@@ -28,8 +27,10 @@ pub mod privacy_pay {
         merkle_root: [u8; 32],
         amount: u64,
         proof: Vec<u8>,
+        nullifier_seed: [u8; 32],
+        public_signals: Vec<[u8; 32]>,
     ) -> Result<()> {
-        instructions::private_spend(ctx, merkle_root, amount, proof)
+        instructions::private_spend(ctx, merkle_root, amount, proof, nullifier_seed, public_signals)
     }
 
     /// Add commitment to state tree (for deposits)
