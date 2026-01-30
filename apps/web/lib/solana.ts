@@ -119,15 +119,26 @@ export async function buildPrivatePaymentTx(
   
   // Convert public signals to Vec<[u8; 32]>
   // Each signal is a bigint that needs to be converted to a 32-byte array
-  const publicSignalsArrays = params.proof.publicSignals.map(signal => {
+  const publicSignalsArrays = params.proof.publicSignals.map((signal, idx) => {
     const sigBigInt = BigInt(signal);
-    // Truncate to 64 bits to fit in u64 range
-    const truncated = sigBigInt & BigInt('0xFFFFFFFFFFFFFFFF');
     
-    // Convert to 32-byte array (big-endian)
-    const buf = Buffer.alloc(32);
-    buf.writeBigUInt64BE(truncated, 24); // Write to last 8 bytes
-    return Array.from(buf);
+    // For merkleRoot (signal index 1), preserve full 256 bits
+    // For other signals, truncate to 64 bits
+    if (idx === 1) {
+      // MerkleRoot - full 32 bytes (big-endian)
+      const buf = Buffer.alloc(32);
+      const hex = sigBigInt.toString(16).padStart(64, '0');
+      Buffer.from(hex, 'hex').copy(buf);
+      console.log('[Solana] Signal[1] MerkleRoot:', hex);
+      return Array.from(buf);
+    } else {
+      // Nullifier and Amount - 64-bit values
+      const truncated = sigBigInt & BigInt('0xFFFFFFFFFFFFFFFF');
+      const buf = Buffer.alloc(32);
+      buf.writeBigUInt64BE(truncated, 24); // Write to last 8 bytes
+      console.log(`[Solana] Signal[${idx}]:`, truncated.toString());
+      return Array.from(buf);
+    }
   });
 
   console.log('[Solana] Building transaction with:', {
@@ -237,5 +248,9 @@ export async function isNullifierUsed(connection: Connection, nullifierSeed: Buf
  * Get transaction explorer URL
  */
 export function getExplorerUrl(signature: string, cluster: string = 'devnet'): string {
+  // Handle mock transactions
+  if (signature.startsWith('mock_')) {
+    return `https://explorer.solana.com/address/${process.env.NEXT_PUBLIC_PROGRAM_ID || 'Csrxfr5aDNNMmozoGGfbLjYeU7Kjjs3ZH2Vy83c5Rpd8'}?cluster=${cluster}`;
+  }
   return `https://explorer.solana.com/tx/${signature}?cluster=${cluster}`;
 }

@@ -31,7 +31,7 @@ async function initState() {
 
   // Load program
   const idl = JSON.parse(fs.readFileSync('target/idl/privacy_pay.json', 'utf-8'));
-  const programId = new PublicKey(idl.metadata.address);
+  const programId = new PublicKey('HPnAch9XaLsvKdtHtqEq4o5SAoDThCHd4zt9NCbmPKBw');
   const program = new Program(idl, programId, provider);
 
   console.log('Program:', programId.toString());

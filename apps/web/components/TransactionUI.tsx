@@ -10,15 +10,17 @@ export interface TransactionStep {
   description: string;
   status: 'idle' | 'active' | 'complete' | 'error';
   error?: string;
+  data?: string;
 }
 
 interface TransactionUIProps {
   steps: TransactionStep[];
   txSignature?: string;
+  merkleRoot?: string;
   loading: boolean;
 }
 
-export function TransactionUI({ steps, txSignature, loading }: TransactionUIProps) {
+export function TransactionUI({ steps, txSignature, merkleRoot, loading }: TransactionUIProps) {
   const completedCount = steps.filter(s => s.status === 'complete').length;
   const totalCount = steps.length;
 
@@ -68,6 +70,14 @@ export function TransactionUI({ steps, txSignature, loading }: TransactionUIProp
             <code className="block bg-slate-800 rounded px-3 py-2 text-xs text-green-400 break-all">
               {txSignature.slice(0, 20)}...{txSignature.slice(-20)}
             </code>
+            {merkleRoot && (
+              <div className="mt-2">
+                <p className="text-xs text-slate-400 mb-1">Merkle Root:</p>
+                <code className="block bg-slate-800 rounded px-3 py-2 text-xs text-blue-400 break-all">
+                  {merkleRoot}
+                </code>
+              </div>
+            )}
           </div>
         </div>
       )}

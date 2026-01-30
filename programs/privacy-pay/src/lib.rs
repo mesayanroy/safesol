@@ -5,7 +5,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("11111111111111111111111111111111");
+declare_id!("HPnAch9XaLsvKdtHtqEq4o5SAoDThCHd4zt9NCbmPKBw");
 
 #[program]
 pub mod privacy_pay {

@@ -3,11 +3,11 @@ name = "zk-verifier"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "zk_verifier"
+
+[workspace]
 
 [features]
 idl-build = ["anchor-lang/idl-build"]

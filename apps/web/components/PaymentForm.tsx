@@ -1,14 +1,16 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import { InfoIcon, ProofStatusBadge } from './UI';
 
 interface PaymentFormProps {
-  onSubmit: (recipient: string, amount: number) => Promise<void>;
+  onSubmit: (recipient: string, amount: number, paymentType: 'domestic' | 'cross-border') => Promise<void>;
   loading: boolean;
   connected: boolean;
   proofStatus?: 'idle' | 'generating' | 'generated' | 'submitted' | 'confirmed' | 'error';
+  crossBorderLimitRemaining?: number;
+  onPaymentTypeChange?: (type: 'domestic' | 'cross-border') => void;
 }
 
 const PaymentForm: FC<PaymentFormProps> = ({
@@ -16,9 +18,12 @@ const PaymentForm: FC<PaymentFormProps> = ({
   loading,
   connected,
   proofStatus = 'idle',
+  crossBorderLimitRemaining,
+  onPaymentTypeChange,
 }) => {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
+  const [paymentType, setPaymentType] = useState<'domestic' | 'cross-border'>('domestic');
   const [errors, setErrors] = useState<{ recipient?: string; amount?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,19 +43,77 @@ const PaymentForm: FC<PaymentFormProps> = ({
       newErrors.amount = 'Enter a valid amount';
     }
 
+    // Check cross-border limit
+    if (paymentType === 'cross-border' && crossBorderLimitRemaining !== undefined) {
+      if (amountNum > crossBorderLimitRemaining) {
+        newErrors.amount = `Cross-border limit exceeded. Remaining: ${crossBorderLimitRemaining.toFixed(2)} SOL`;
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
     setErrors({});
-    await onSubmit(recipient, amountNum);
+    await onSubmit(recipient, amountNum, paymentType);
   };
+
+  // Notify parent of payment type change
+  useEffect(() => {
+    onPaymentTypeChange?.(paymentType);
+  }, [paymentType, onPaymentTypeChange]);
 
   const isDisabled = loading || !connected;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      {/* Payment Type Selection */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-900 dark:text-stone-50 mb-3">
+          Payment Type
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {(['domestic', 'cross-border'] as const).map(type => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setPaymentType(type)}
+              disabled={isDisabled}
+              className={`p-4 rounded-xl border-2 transition-all font-semibold text-sm sm:text-base ${
+                paymentType === type
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                  : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-50 hover:border-blue-300 dark:hover:border-blue-700'
+              } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className="text-lg mb-1 block">{type === 'domestic' ? '🏠' : '🌍'}</span>
+              {type === 'domestic' ? 'Domestic' : 'Cross-Border'}
+            </button>
+          ))}
+        </div>
+
+        {/* Cross-Border Limit Warning */}
+        {paymentType === 'cross-border' && crossBorderLimitRemaining !== undefined && (
+          <div className={`mt-3 p-3 rounded-lg text-xs sm:text-sm ${
+            crossBorderLimitRemaining > 0
+              ? 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
+              : 'bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+          }`}>
+            {crossBorderLimitRemaining > 0 ? (
+              <>
+                <span className="font-semibold">⚠️ Daily Limit:</span> {' '}
+                {crossBorderLimitRemaining.toFixed(2)} SOL remaining today
+              </>
+            ) : (
+              <>
+                <span className="font-semibold">❌ Limit Exceeded:</span> {' '}
+                Daily cross-border limit reached. Try again tomorrow or send a domestic payment.
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Recipient Input */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">

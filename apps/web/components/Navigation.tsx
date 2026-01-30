@@ -25,7 +25,7 @@ export default function Navigation() {
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
-    { label: 'Payment', href: '/', icon: '💳' },
+    { label: 'Send Payment', href: '/', icon: '💳' },
     { label: 'Dashboard', href: '/dashboard', icon: '📊' },
     { label: 'Dev Tools', href: '/dev-tools', icon: '⚙️' },
   ];

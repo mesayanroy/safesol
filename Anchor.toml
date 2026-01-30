@@ -10,8 +10,8 @@ privacy_pay = "11111111111111111111111111111111"
 zk_verifier = "11111111111111111111111111111112"
 
 [programs.devnet]
-privacy_pay = "11111111111111111111111111111111"
-zk_verifier = "11111111111111111111111111111112"
+privacy_pay = "HPnAch9XaLsvKdtHtqEq4o5SAoDThCHd4zt9NCbmPKBw"
+zk_verifier = "HuM2XCBAuNuswyWmTHH2igu1zbiPJm2vPrrgsio63pzZ"
 
 [registry]
 url = "https://api.apr.dev"

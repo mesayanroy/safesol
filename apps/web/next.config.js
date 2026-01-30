@@ -16,6 +16,15 @@ const nextConfig = {
   },
 
   webpack: (config, { isServer }) => {
+    // Provide Buffer globally for browser
+    if (!isServer) {
+      config.plugins.push(
+        new (require('webpack')).ProvidePlugin({
+          Buffer: ['buffer', 'Buffer'],
+        })
+      );
+    }
+
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
@@ -23,7 +32,6 @@ const nextConfig = {
       crypto: false,
       stream: false,
       events: false,
-      buffer: false,
     };
 
     // Suppress critical dependency warnings from wallet adapter dependencies

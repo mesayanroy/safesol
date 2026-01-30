@@ -3,11 +3,11 @@ name = "privacy-pay"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "privacy_pay"
+
+[workspace]
 
 [features]
 idl-build = ["anchor-lang/idl-build"]

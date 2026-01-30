@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
+use anchor_lang::Result;
 
-declare_id!("11111111111111111111111111111112");
+declare_id!("HuM2XCBAuNuswyWmTHH2igu1zbiPJm2vPrrgsio63pzZ");
 
 #[program]
 pub mod zk_verifier {

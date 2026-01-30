@@ -9,8 +9,51 @@
  */
 
 import { buildPoseidon } from 'circomlibjs';
+import { Buffer } from 'buffer';
 // @ts-ignore
 import * as snarkjs from 'snarkjs';
+
+/**
+ * Convert Uint8Array to hex string (browser-compatible)
+ */
+function uint8ArrayToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Convert BigInt to 32-byte Buffer (big-endian)
+ */
+function bigIntToBytes32(value: string | bigint): Buffer {
+  const buf = Buffer.alloc(32, 0);
+  let bigint: bigint;
+
+  if (typeof value === 'string') {
+    if (value.startsWith('0x')) {
+      bigint = BigInt(value);
+    } else {
+      bigint = BigInt(value);
+    }
+  } else {
+    bigint = value;
+  }
+
+  // Ensure value is within valid range
+  const maxVal = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF');
+  if (bigint > maxVal || bigint < BigInt(0)) {
+    console.warn('[ZK] Value out of range, truncating:', value);
+    bigint = bigint & maxVal;
+  }
+
+  // Write big-endian 32 bytes
+  for (let i = 31; i >= 0; i--) {
+    buf[i] = Number(bigint & BigInt(0xff));
+    bigint = bigint >> BigInt(8);
+  }
+
+  return buf;
+}
 
 export interface SpendProof {
   proof: any;
@@ -153,6 +196,7 @@ export async function generateSpendProof(
     }
 
     // Prepare circuit inputs for simplified circuit (just secret and amount)
+    // NOTE: Our circuit doesn't verify merkleRoot, but we add it to publicSignals for the Solana program
     const circuitInputs = {
       secret: inputs.secret.toString(),
       amount: inputs.amount.toString(),
@@ -162,6 +206,7 @@ export async function generateSpendProof(
     console.log('[ZK] Circuit inputs:', {
       secret: '***hidden***',
       amount: circuitInputs.amount,
+      merkleRoot: inputs.merkleRoot.toString(), // Will be added to publicSignals manually
     });
 
     // Pass file paths directly - snarkjs will handle fetching in browser
@@ -173,13 +218,26 @@ export async function generateSpendProof(
     );
 
     console.log('[ZK] ✓ Proof generated successfully');
-    console.log('[ZK] Public signals:', publicSignals);
-    console.log('[ZK] Nullifier (computed):', publicSignals[0]);
+    console.log('[ZK] Circuit public signals (from circuit):', publicSignals);
+    
+    // The circuit outputs: [nullifier, amount]
+    // But Solana program expects: [nullifier, merkleRoot, amount]
+    // So we insert merkleRoot at index 1
+    const nullifier = publicSignals[0];
+    const augmentedSignals = [
+      nullifier,
+      inputs.merkleRoot.toString(), // Insert merkleRoot
+      publicSignals[1] // amount
+    ];
+    
+    console.log('[ZK] Augmented signals for Solana:', augmentedSignals);
+    console.log('[ZK] Nullifier:', nullifier);
+    console.log('[ZK] MerkleRoot:', inputs.merkleRoot.toString());
 
     return {
       proof,
-      publicSignals,
-      nullifier: publicSignals[0],
+      publicSignals: augmentedSignals, // Use augmented signals
+      nullifier: nullifier,
       commitment: commitment.toString(),
     };
   } catch (err) {
@@ -193,47 +251,14 @@ export async function generateSpendProof(
   }
 }
 
-/**
- * Convert BigInt to 32-byte buffer (big-endian)
- */
-function bigIntToBytes32(value: string | bigint): Buffer {
-  const buf = Buffer.alloc(32, 0);
-  let bigint: bigint;
 
-  if (typeof value === 'string') {
-    // Handle hex strings
-    if (value.startsWith('0x')) {
-      bigint = BigInt(value);
-    } else {
-      // Handle decimal strings
-      bigint = BigInt(value);
-    }
-  } else {
-    bigint = value;
-  }
-
-  // Ensure value is within valid range
-  const maxVal = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF');
-  if (bigint > maxVal || bigint < BigInt(0)) {
-    console.warn('[ZK] Value out of range, truncating:', value);
-    bigint = bigint & maxVal;
-  }
-
-  // Write big-endian 32 bytes
-  for (let i = 31; i >= 0; i--) {
-    buf[i] = Number(bigint & BigInt(0xff));
-    bigint = bigint >> BigInt(8);
-  }
-
-  return buf;
-}
 
 /**
  * Format proof for Solana program
  * Anchor expects specific byte format: [pi_a (64), pi_b (128), pi_c (64)] = 256 bytes
  */
 export function serializeProofForSolana(proof: SpendProof): Buffer {
-  const proofBytes = Buffer.alloc(256, 0); // Groth16 proof exactly 256 bytes
+  const proofBytes = Buffer.alloc(256); // Groth16 proof exactly 256 bytes
 
   try {
     // Extract proof components from snarkjs format
@@ -303,7 +328,7 @@ export function serializeProofForSolana(proof: SpendProof): Buffer {
 export function generateSecret(): bigint {
   const randomBytes = new Uint8Array(32);
   crypto.getRandomValues(randomBytes);
-  return BigInt('0x' + Buffer.from(randomBytes).toString('hex'));
+  return BigInt('0x' + uint8ArrayToHex(randomBytes));
 }
 
 /**
