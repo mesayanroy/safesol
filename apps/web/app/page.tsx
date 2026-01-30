@@ -10,6 +10,7 @@ import { BN, AnchorProvider } from '@coral-xyz/anchor';
 import PaymentForm from '@/components/PaymentForm';
 import TransactionDashboard from '@/components/TransactionDashboard';
 import { TransactionUI, TransactionStep } from '@/components/TransactionUI';
+import { ProtocolGuarantees } from '@/components/ProtocolGuarantees';
 import { LandingHero, HowItWorks } from '@/components/Landing';
 import { PrivacyCard, WalletStatus, StepIndicator } from '@/components/UI';
 import { WalletDebugPanel } from '@/components/WalletDebugPanel';
@@ -861,6 +862,11 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Protocol Guarantees */}
+        <div className="mb-8 sm:mb-10">
+          <ProtocolGuarantees />
         </div>
 
         {/* Main Grid */}
