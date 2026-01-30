@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
+    "@headlessui/react": "^2.2.9",
     "@lightprotocol/stateless.js": "^0.9.0",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@solana/wallet-adapter-base": "^0.9.23",

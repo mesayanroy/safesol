@@ -1,7 +1,7 @@
 'use client';
 
 import '@/lib/polyfills';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Buffer } from 'buffer';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -19,9 +19,11 @@ import {
   generateSecret,
   generateCommitment,
   calculateMerklePath,
+  serializeProofForSolana,
 } from '@/lib/zk';
 import { buildPrivatePaymentTx, getExplorerUrl } from '@/lib/solana';
 import { createLightClient } from '@/lib/light';
+import { TransactionManager } from '@/lib/transactions';
 
 // Enable debug mode by adding ?debug=1 to URL
 const isDebugMode =
@@ -36,6 +38,8 @@ export default function Home() {
     limits,
     recordTransaction,
     updateStatus,
+    updateStatusBySignature,
+    attachReceipt,
     checkCrossBorderLimit,
     getRemainingBudget,
     changeFilter,
@@ -46,6 +50,7 @@ export default function Home() {
   const [txSignature, setTxSignature] = useState<string>('');
   const [merkleRoot, setMerkleRoot] = useState<string>('');
   const [currentTxId, setCurrentTxId] = useState<string | null>(null);
+  const currentTxIdRef = useRef<string | null>(null);
   const [paymentType, setPaymentType] = useState<'domestic' | 'cross-border'>('domestic');
   const [proofStatus, setProofStatus] = useState<
     'idle' | 'generating' | 'generated' | 'submitted' | 'confirmed' | 'error'
@@ -149,8 +154,9 @@ export default function Home() {
     setProofStatus('generating');
 
     // Record transaction immediately as pending
-    const txId = recordTransaction('pending', amount, recipient, type);
+    const txId = recordTransaction('', amount, recipient, type, 'pending');
     setCurrentTxId(txId);
+    currentTxIdRef.current = txId;
 
     try {
       // Reset steps
@@ -199,6 +205,7 @@ export default function Home() {
       let merkleProof: string[];
       let currentRoot: string;
       let lightClient: any;
+      let proofBytes: Buffer; // Track proof bytes for receipt generation
 
       try {
         // Load program to read state
@@ -364,9 +371,11 @@ export default function Home() {
         setProofStatus('confirmed');
         setLoading(false);
 
-        if (currentTxId) {
-          updateStatus(currentTxId, 'confirmed', mockSignature);
+        const txId = currentTxIdRef.current;
+        if (txId) {
+          updateStatus(txId, 'confirmed', mockSignature);
         }
+        updateStatusBySignature(mockSignature, 'confirmed');
 
         return;
       }
@@ -394,6 +403,11 @@ export default function Home() {
       let tx;
       try {
         console.log('[App] Serializing proof for Solana...');
+        
+        // Serialize proof and capture bytes for receipt
+        proofBytes = serializeProofForSolana(proof);
+        console.log('[App] ✓ Proof serialized:', proofBytes.length, 'bytes');
+        
         tx = await buildPrivatePaymentTx(provider, {
           proof,
           amount: new BN(Math.floor(amount * 1e9)),
@@ -478,9 +492,11 @@ export default function Home() {
         setTxSignature(signature);
         setMerkleRoot(currentRoot);
 
-        // Update transaction status to confirmed immediately (signature received = success)
-        if (currentTxId) {
-          updateStatus(currentTxId, 'confirmed', signature);
+        // Update transaction record with signature (still pending confirmation)
+        const txId = currentTxIdRef.current;
+        if (txId) {
+          updateStatus(txId, 'pending', signature);
+          console.log('[App] Transaction sent, waiting for on-chain confirmation...');
         }
 
         setProofStatus('confirmed');
@@ -499,9 +515,10 @@ export default function Home() {
             updateStep('sign-tx', 'complete', undefined, `Tx: ${signature.slice(0, 16)}...`);
           }
 
-          // Update transaction status to confirmed immediately
-          if (currentTxId) {
-            updateStatus(currentTxId, 'confirmed', signature);
+          const txId = currentTxIdRef.current;
+          if (txId) {
+            updateStatus(txId, 'pending', signature);
+            console.log('[App] Transaction sent, waiting for on-chain confirmation...');
           }
 
           setProofStatus('confirmed');
@@ -544,7 +561,8 @@ export default function Home() {
 
       // Step 8: Confirm transaction (run in background, don't block UI)
       updateStep('confirm', 'active');
-      console.log('[App] Step 8: Confirming transaction in background...');
+        console.log('[App] Step 8: Confirming transaction on-chain...');
+        console.log('[App] ⏳ Checking confirmation status (this may take a few seconds)...');
       console.log('[App] Signature to confirm:', signature);
 
       // Don't await - let confirmation happen in background
@@ -553,28 +571,104 @@ export default function Home() {
           // Check confirmation status a few times quickly
           let confirmed = false;
           let attempts = 0;
-          const maxAttempts = 10; // Reduced from 30
+          const maxAttempts = 20; // Faster feedback with shorter interval
 
           while (!confirmed && attempts < maxAttempts) {
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Check every 1 second
+            await new Promise((resolve) => setTimeout(resolve, 500)); // Check every 0.5 seconds
 
             try {
-              const statuses = await connection.getSignatureStatuses([signature]);
+              const statuses = await connection.getSignatureStatuses([signature], {
+                searchTransactionHistory: true,
+              });
               const status = statuses.value[0];
 
               console.log(`[App] Confirmation attempt ${attempts + 1}/${maxAttempts}:`, status);
 
+              if (!status) {
+                const txDetails = await connection.getTransaction(signature, {
+                  maxSupportedTransactionVersion: 0,
+                  commitment: 'confirmed',
+                });
+                if (txDetails) {
+                  confirmed = true;
+                  console.log('[App] ✓ Transaction found on-chain via getTransaction');
+                  updateStep('confirm', 'complete', undefined, '✓ Confirmed on Solana');
+
+                  const txId = currentTxIdRef.current;
+                  if (txId) {
+                    updateStatus(txId, 'confirmed', signature);
+                  }
+                  updateStatusBySignature(signature, 'confirmed');
+
+                  break;
+                }
+              }
+
               if (
+                status?.confirmationStatus === 'processed' ||
                 status?.confirmationStatus === 'confirmed' ||
-                status?.confirmationStatus === 'finalized'
+                status?.confirmationStatus === 'finalized' ||
+                (status?.confirmationStatus === null && status?.confirmations === null)
               ) {
                 confirmed = true;
                 console.log('[App] ✓ Transaction confirmed on-chain!');
 
                 if (status.err) {
                   console.error('[App] ✗ Transaction failed on-chain:', status.err);
+                  updateStep('confirm', 'error', 'Transaction failed on-chain');
+
+                  // Update transaction status to failed
+                  const txId = currentTxIdRef.current;
+                  if (txId) {
+                    updateStatus(txId, 'failed', `On-chain error: ${JSON.stringify(status.err)}`);
+                  }
+                  updateStatusBySignature(signature, 'failed', `On-chain error: ${JSON.stringify(status.err)}`);
                 } else {
                   updateStep('confirm', 'complete', undefined, '✓ Confirmed on Solana');
+
+                  // Update transaction status to confirmed
+                  const txId = currentTxIdRef.current;
+                  if (txId) {
+                    updateStatus(txId, 'confirmed', signature);
+                  }
+                  updateStatusBySignature(signature, 'confirmed');
+                  
+                  // Fetch transaction details for receipt
+                  try {
+                    const txDetails = await connection.getTransaction(signature, {
+                      maxSupportedTransactionVersion: 0,
+                    });
+                    
+                    const blockTime = txDetails?.blockTime || undefined;
+                    console.log('[App] Transaction block time:', blockTime);
+                    
+                    // Generate privacy receipt
+                    const network = process.env.NEXT_PUBLIC_RPC_ENDPOINT?.includes('devnet') 
+                      ? 'devnet' 
+                      : 'mainnet-beta';
+                    const proofType = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROOFS === 'true' 
+                      ? 'Mock' as const
+                      : 'Groth16' as const;
+                    
+                    const receipt = TransactionManager.createReceipt(
+                      signature,
+                      currentRoot,
+                      proofBytes,
+                      proof.nullifier,
+                      network,
+                      proofType,
+                      blockTime
+                    );
+                    
+                    // Attach receipt to transaction
+                    const txId = currentTxIdRef.current;
+                    if (txId) {
+                      attachReceipt(txId, receipt);
+                      console.log('[App] ✓ Privacy receipt attached to transaction');
+                    }
+                  } catch (receiptErr) {
+                    console.warn('[App] ⚠ Failed to generate receipt (non-critical):', receiptErr);
+                  }
                 }
                 break;
               }
@@ -586,8 +680,12 @@ export default function Home() {
           }
 
           if (!confirmed) {
-            console.log('[App] ℹ Transaction pending - check explorer for status');
+            console.log('[App] ℹ Transaction confirmation timed out - may still be processing');
+            console.log('[App] ℹ Check explorer for current status:', getExplorerUrl(signature));
             updateStep('confirm', 'complete', undefined, '✓ Sent (check explorer)');
+            
+            // Note: We don't mark as failed - transaction might still confirm later
+            // The monitorTransaction background task will update status when confirmed
           }
 
           // Update Light Protocol state
@@ -617,8 +715,9 @@ export default function Home() {
       setLoading(false); // Clear loading state on error
 
       // Mark transaction as failed
-      if (currentTxId) {
-        updateStatus(currentTxId, 'failed', err.message || 'Unknown error');
+      const txId = currentTxIdRef.current;
+      if (txId) {
+        updateStatus(txId, 'failed', err.message || 'Unknown error');
       }
 
       // Mark failed step

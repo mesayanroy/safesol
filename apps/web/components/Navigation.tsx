@@ -6,10 +6,12 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useTransactionHistory } from '@/hooks/useTransactionHistory';
 
 export default function Navigation() {
   const pathname = usePathname();
   const { publicKey } = useWallet();
+  const { stats } = useTransactionHistory();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -64,6 +66,11 @@ export default function Navigation() {
               >
                 <span className="text-lg">{item.icon}</span>
                 <span>{item.label}</span>
+                {item.href === '/dashboard' && stats && stats.confirmedTransactions > 0 && (
+                  <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-green-500/20 text-green-300 px-2 py-0.5 text-[10px] font-semibold">
+                    ✓ Confirmed
+                  </span>
+                )}
               </Link>
             ))}
           </div>
@@ -115,6 +122,11 @@ export default function Navigation() {
               >
                 <span className="text-lg">{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
+                {item.href === '/dashboard' && stats && stats.confirmedTransactions > 0 && (
+                  <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-green-500/20 text-green-300 px-2 py-0.5 text-[10px] font-semibold">
+                    ✓ Confirmed
+                  </span>
+                )}
               </Link>
             ))}
           </div>

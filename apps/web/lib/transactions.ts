@@ -1,7 +1,19 @@
 import { PublicKey, Connection, Transaction } from '@solana/web3.js';
+import { createHash } from 'crypto';
 
 export type TransactionType = 'domestic' | 'cross-border';
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
+
+export interface PrivacyReceipt {
+  txHash: string;
+  network: string;
+  timestamp: number;
+  commitmentRoot: string;
+  zkProofHash: string;
+  nullifier: string;
+  proofType: 'Groth16' | 'Mock';
+  blockTime?: number;
+}
 
 export interface TransactionRecord {
   id: string;
@@ -13,6 +25,8 @@ export interface TransactionRecord {
   timestamp: number;
   errorMessage?: string;
   gasUsed?: number;
+  // Privacy receipt data
+  receipt?: PrivacyReceipt;
 }
 
 export interface DailyLimits {
@@ -135,6 +149,70 @@ export class TransactionManager {
   }
 
   /**
+   * Update transaction status by signature (fallback if txId is unknown)
+   */
+  updateTransactionStatusBySignature(
+    signature: string,
+    status: TransactionStatus,
+    errorMessage?: string
+  ): void {
+    const txs = this.getTransactions();
+    const tx = txs.find((t) => t.signature === signature);
+
+    if (tx) {
+      tx.status = status;
+      if (errorMessage) tx.errorMessage = errorMessage;
+
+      if (status === 'confirmed' && tx.type === 'cross-border') {
+        this.updateDailyLimits(tx.amount);
+      }
+
+      this.saveTransaction(tx);
+    }
+  }
+
+  /**
+   * Attach privacy receipt to transaction
+   */
+  attachReceipt(txId: string, receipt: PrivacyReceipt): void {
+    const txs = this.getTransactions();
+    const tx = txs.find((t) => t.id === txId);
+
+    if (tx) {
+      tx.receipt = receipt;
+      this.saveTransaction(tx);
+    }
+  }
+
+  /**
+   * Generate privacy receipt from transaction data
+   */
+  static createReceipt(
+    txHash: string,
+    commitmentRoot: string,
+    proofBytes: Uint8Array | Buffer,
+    nullifier: string,
+    network: string = 'devnet',
+    proofType: 'Groth16' | 'Mock' = 'Groth16',
+    blockTime?: number
+  ): PrivacyReceipt {
+    // Hash the proof bytes to create a proof hash
+    const proofArray = proofBytes instanceof Buffer ? proofBytes : Buffer.from(proofBytes);
+    const zkProofHash = createHash('sha256').update(proofArray).digest('hex');
+
+    return {
+      txHash,
+      network,
+      timestamp: Date.now(),
+      commitmentRoot,
+      zkProofHash,
+      nullifier,
+      proofType,
+      blockTime,
+    };
+  }
+
+  /**
    * Get current daily limits
    */
   getDailyLimits(): DailyLimits {
@@ -236,14 +314,27 @@ export class TransactionManager {
    */
   async verifyTransaction(signature: string): Promise<boolean> {
     try {
-      const status = await this.connection.getSignatureStatus(signature);
-      if (!status || !status.value) return false;
+      const statuses = await this.connection.getSignatureStatuses([signature], {
+        searchTransactionHistory: true,
+      });
+        const status = statuses.value[0];
+      
+      if (!status) {
+        // Fallback: check if transaction exists on-chain
+        const tx = await this.connection.getTransaction(signature, {
+          maxSupportedTransactionVersion: 0,
+          commitment: 'confirmed',
+        });
+        return Boolean(tx);
+      }
 
-      const isConfirmed =
-        status.value.confirmationStatus === 'confirmed' ||
-        status.value.confirmationStatus === 'finalized';
+        const isConfirmed =
+          status.confirmationStatus === 'processed' ||
+          status.confirmationStatus === 'confirmed' ||
+          status.confirmationStatus === 'finalized' ||
+          (status.confirmationStatus === null && status.confirmations === null);
 
-      return isConfirmed && !status.value.err;
+        return isConfirmed && !status.err;
     } catch (error) {
       console.error('Error verifying transaction:', error);
       return false;
@@ -262,18 +353,50 @@ export class TransactionManager {
     let retries = 0;
 
     while (retries < maxRetries) {
-      const isConfirmed = await this.verifyTransaction(signature);
+      try {
+        const statuses = await this.connection.getSignatureStatuses([signature], {
+          searchTransactionHistory: true,
+        });
+        const status = statuses.value[0];
 
-      if (isConfirmed) {
-        this.updateTransactionStatus(txId, 'confirmed');
-        return true;
+        if (status?.err) {
+          this.updateTransactionStatus(txId, 'failed', JSON.stringify(status.err));
+          this.updateTransactionStatusBySignature(signature, 'failed', JSON.stringify(status.err));
+          return false;
+        }
+
+        if (!status) {
+          const tx = await this.connection.getTransaction(signature, {
+            maxSupportedTransactionVersion: 0,
+            commitment: 'confirmed',
+          });
+          if (tx) {
+            this.updateTransactionStatus(txId, 'confirmed');
+            this.updateTransactionStatusBySignature(signature, 'confirmed');
+            return true;
+          }
+        }
+
+        const isConfirmed =
+          status?.confirmationStatus === 'processed' ||
+          status?.confirmationStatus === 'confirmed' ||
+          status?.confirmationStatus === 'finalized' ||
+          (status?.confirmationStatus === null && status?.confirmations === null);
+
+        if (isConfirmed) {
+          this.updateTransactionStatus(txId, 'confirmed');
+          this.updateTransactionStatusBySignature(signature, 'confirmed');
+          return true;
+        }
+      } catch (error) {
+        console.error('Error monitoring transaction:', error);
       }
 
       retries++;
       await new Promise((resolve) => setTimeout(resolve, retryInterval));
     }
 
-    this.updateTransactionStatus(txId, 'failed', 'Transaction confirmation timeout');
+    // Do not mark as failed on timeout; transaction may still confirm later
     return false;
   }
 

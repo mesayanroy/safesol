@@ -2,7 +2,8 @@
 
 import { FC, useState } from 'react';
 import { TransactionRecord, TransactionType, TransactionStatus } from '@/lib/transactions';
-import { Copy, Download, Trash2, Filter } from 'lucide-react';
+import { Copy, Download, Trash2, Filter, FileText } from 'lucide-react';
+import { PrivacyReceiptModal } from './PrivacyReceiptModal';
 
 interface TransactionDashboardProps {
   transactions: TransactionRecord[];
@@ -83,6 +84,7 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
   const [selectedType, setSelectedType] = useState<TransactionType | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<TransactionStatus | undefined>(undefined);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<TransactionRecord | null>(null);
 
   const handleFilterChange = () => {
     onFilterChange?.({
@@ -301,7 +303,7 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
                     Time
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
-                    Action
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -328,13 +330,25 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
                       {formatDate(tx.timestamp)}
                     </td>
                     <td className="px-4 py-4">
-                      <button
-                        onClick={() => copyToClipboard(tx.signature, tx.id)}
-                        className="p-1.5 rounded hover:bg-stone-100 dark:hover:bg-stone-800 transition"
-                        title="Copy signature"
-                      >
-                        <Copy className="w-4 h-4 text-stone-500 dark:text-stone-400" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => copyToClipboard(tx.signature, tx.id)}
+                          className="p-1.5 rounded hover:bg-stone-100 dark:hover:bg-stone-800 transition"
+                          title="Copy signature"
+                        >
+                          <Copy className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+                        </button>
+                        {tx.status === 'confirmed' && tx.receipt && (
+                          <button
+                            onClick={() => setSelectedReceipt(tx)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-medium transition shadow-sm"
+                            title="View Privacy Receipt"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>Receipt</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -353,6 +367,14 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Privacy Receipt Modal */}
+      {selectedReceipt && selectedReceipt.receipt && (
+        <PrivacyReceiptModal
+          receipt={selectedReceipt.receipt}
+          onClose={() => setSelectedReceipt(null)}
+        />
+      )}
     </div>
   );
 };
