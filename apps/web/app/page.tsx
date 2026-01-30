@@ -14,7 +14,12 @@ import { LandingHero, HowItWorks } from '@/components/Landing';
 import { PrivacyCard, WalletStatus, StepIndicator } from '@/components/UI';
 import { WalletDebugPanel } from '@/components/WalletDebugPanel';
 import { useTransactionHistory } from '@/hooks/useTransactionHistory';
-import { generateSpendProof, generateSecret, generateCommitment, calculateMerklePath } from '@/lib/zk';
+import {
+  generateSpendProof,
+  generateSecret,
+  generateCommitment,
+  calculateMerklePath,
+} from '@/lib/zk';
 import { buildPrivatePaymentTx, getExplorerUrl } from '@/lib/solana';
 import { createLightClient } from '@/lib/light';
 
@@ -50,20 +55,36 @@ export default function Home() {
   const [connectionError, setConnectionError] = useState<string>('');
   const [transactionSteps, setTransactionSteps] = useState<TransactionStep[]>([
     { id: 'secret', label: 'Generate Secret', description: 'Creating commitment', status: 'idle' },
-    { id: 'merkle', label: 'Merkle Proof', description: 'Fetching from Light Protocol', status: 'idle' },
+    {
+      id: 'merkle',
+      label: 'Merkle Proof',
+      description: 'Fetching from Light Protocol',
+      status: 'idle',
+    },
     { id: 'zk-proof', label: 'ZK Proof', description: 'Groth16 proof generation', status: 'idle' },
-    { id: 'build-tx', label: 'Build Transaction', description: 'Preparing Solana transaction', status: 'idle' },
-    { id: 'sign-tx', label: 'Sign & Send', description: 'Wallet signature and submission', status: 'idle' },
+    {
+      id: 'build-tx',
+      label: 'Build Transaction',
+      description: 'Preparing Solana transaction',
+      status: 'idle',
+    },
+    {
+      id: 'sign-tx',
+      label: 'Sign & Send',
+      description: 'Wallet signature and submission',
+      status: 'idle',
+    },
     { id: 'confirm', label: 'Confirm', description: 'Waiting for confirmation', status: 'idle' },
   ]);
 
-  const updateStep = (stepId: string, status: TransactionStep['status'], error?: string, data?: string) => {
-    setTransactionSteps(prev =>
-      prev.map(step =>
-        step.id === stepId
-          ? { ...step, status, error, data }
-          : step
-      )
+  const updateStep = (
+    stepId: string,
+    status: TransactionStep['status'],
+    error?: string,
+    data?: string
+  ) => {
+    setTransactionSteps((prev) =>
+      prev.map((step) => (step.id === stepId ? { ...step, status, error, data } : step))
     );
   };
 
@@ -81,10 +102,13 @@ export default function Home() {
     console.log('[App] 🚀 Starting private payment:', { recipient, amount, type });
     console.log('[App] 🔧 Buffer available:', typeof Buffer !== 'undefined');
     console.log('[App] 🔧 crypto available:', typeof crypto !== 'undefined');
-    console.log('[App] 🔧 crypto.getRandomValues available:', typeof crypto?.getRandomValues === 'function');
+    console.log(
+      '[App] 🔧 crypto.getRandomValues available:',
+      typeof crypto?.getRandomValues === 'function'
+    );
     console.log('[App] 🔧 generateSecret available:', typeof generateSecret === 'function');
     console.log('[App] 🔧 generateCommitment available:', typeof generateCommitment === 'function');
-    
+
     // Test Buffer functionality
     try {
       const testBuf = Buffer.alloc(32);
@@ -92,11 +116,15 @@ export default function Home() {
     } catch (bufErr) {
       console.error('[App] ✗ Buffer test failed:', bufErr);
     }
-    
+
     // Test generateSecret
     try {
       const testSecret = generateSecret();
-      console.log('[App] 🔧 generateSecret test successful:', typeof testSecret, testSecret.toString(16).slice(0, 16) + '...');
+      console.log(
+        '[App] 🔧 generateSecret test successful:',
+        typeof testSecret,
+        testSecret.toString(16).slice(0, 16) + '...'
+      );
     } catch (secretTestErr) {
       console.error('[App] ✗ generateSecret test failed:', secretTestErr);
     }
@@ -119,14 +147,14 @@ export default function Home() {
     setConnectionError('');
     setLoading(true);
     setProofStatus('generating');
-    
+
     // Record transaction immediately as pending
     const txId = recordTransaction('pending', amount, recipient, type);
     setCurrentTxId(txId);
-    
+
     try {
       // Reset steps
-      setTransactionSteps(prev => prev.map(s => ({ ...s, status: 'idle', error: undefined })));
+      setTransactionSteps((prev) => prev.map((s) => ({ ...s, status: 'idle', error: undefined })));
 
       console.log('[App] Starting private payment flow...', {
         type,
@@ -138,25 +166,28 @@ export default function Home() {
       // Step 1: Generate secret and commitment
       updateStep('secret', 'active');
       console.log('[App] Step 1: Generating secret and commitment...');
-      
+
       let secret: bigint;
       let commitment: bigint;
-      
+
       try {
         secret = generateSecret();
         const secretHash = secret.toString(16).slice(0, 16);
         console.log('[App] ✓ Secret generated:', secretHash + '...');
-        
+
         // Generate commitment
         commitment = await generateCommitment(secret, BigInt(Math.floor(amount * 1e9)));
-        
+
         updateStep('secret', 'complete', undefined, `Secret: ${secretHash}...`);
         console.log('[App] ✓ Commitment generated:', commitment.toString().slice(0, 16) + '...');
       } catch (secretErr) {
         const errMsg = secretErr instanceof Error ? secretErr.message : 'Secret generation failed';
         console.error('[App] ✗ Secret generation error:', secretErr);
         console.error('[App] ✗ Error type:', typeof secretErr);
-        console.error('[App] ✗ Error stack:', secretErr instanceof Error ? secretErr.stack : 'No stack');
+        console.error(
+          '[App] ✗ Error stack:',
+          secretErr instanceof Error ? secretErr.stack : 'No stack'
+        );
         updateStep('secret', 'error', errMsg);
         throw new Error(errMsg);
       }
@@ -164,41 +195,38 @@ export default function Home() {
       // Step 2: Fetch current Merkle root from on-chain state PDA
       updateStep('merkle', 'active');
       console.log('[App] Step 2: Fetching Merkle root from on-chain state...');
-      
+
       let merkleProof: string[];
       let currentRoot: string;
       let lightClient: any;
-      
+
       try {
         // Load program to read state
         const programId = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID!);
-        const [statePDA] = PublicKey.findProgramAddressSync(
-          [Buffer.from('state')],
-          programId
-        );
-        
+        const [statePDA] = PublicKey.findProgramAddressSync([Buffer.from('state')], programId);
+
         console.log('[App] Fetching state from PDA:', statePDA.toString());
-        
+
         // Fetch state account data
         const stateAccount = await connection.getAccountInfo(statePDA);
         if (!stateAccount) {
           throw new Error('State PDA not initialized. Run: npx tsx scripts/init_state.ts');
         }
-        
+
         // Parse Merkle root from state (skip 8-byte discriminator + 32-byte authority = offset 40)
         const merkleRootBytes = stateAccount.data.slice(40, 72);
         currentRoot = Buffer.from(merkleRootBytes).toString('hex');
-        
+
         console.log('[App] ✓ On-chain Merkle root:', currentRoot.slice(0, 16) + '...');
         console.log('[App] ✓ Full root:', currentRoot);
-        
+
         // For now, use mock merkle proof (empty tree)
         lightClient = createLightClient(connection);
         merkleProof = await lightClient.getCommitmentProof(commitment.toString());
-        
+
         // Store merkle root for display
         setMerkleRoot(currentRoot);
-        
+
         updateStep('merkle', 'complete', undefined, `Root: ${currentRoot.slice(0, 16)}...`);
       } catch (merkleErr) {
         const errMsg = merkleErr instanceof Error ? merkleErr.message : 'Merkle proof failed';
@@ -209,20 +237,21 @@ export default function Home() {
 
       // Step 3: Calculate Merkle path (this is part of zk-proof preparation)
       console.log('[App] Step 3: Calculating Merkle path indices...');
-      
+
       let path: bigint[];
       let indices: bigint[];
-      
+
       try {
         const pathResult = await calculateMerklePath(
           commitment,
-          merkleProof.map(p => BigInt(p))
+          merkleProof.map((p) => BigInt(p))
         );
         path = pathResult.path;
         indices = pathResult.indices;
         console.log('[App] ✓ Path calculated with', path.length, 'levels');
       } catch (pathErr) {
-        const errMsg = pathErr instanceof Error ? pathErr.message : 'Merkle path calculation failed';
+        const errMsg =
+          pathErr instanceof Error ? pathErr.message : 'Merkle path calculation failed';
         console.error('[App] ✗ Merkle path error:', pathErr);
         updateStep('merkle', 'error', errMsg);
         throw new Error(errMsg);
@@ -231,11 +260,11 @@ export default function Home() {
       // Step 4: Generate ZK proof
       updateStep('zk-proof', 'active');
       console.log('[App] Step 4: Generating zero-knowledge proof...');
-      
+
       const useMockProofs = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROOFS === 'true';
       const proofMode = useMockProofs ? 'MOCK (development)' : 'REAL Groth16 (production)';
       console.log('[App] Proof generation mode:', proofMode);
-      
+
       let proof;
       try {
         console.log('[App] Starting ZK proof generation...');
@@ -243,25 +272,29 @@ export default function Home() {
           secret: '***hidden***',
           amount: Math.floor(amount * 1e9),
           merkleRoot: currentRoot,
-          merkleRootBigInt: BigInt('0x' + (currentRoot.startsWith('0x') ? currentRoot.slice(2) : currentRoot)).toString(),
+          merkleRootBigInt: BigInt(
+            '0x' + (currentRoot.startsWith('0x') ? currentRoot.slice(2) : currentRoot)
+          ).toString(),
         });
-        
+
         proof = await generateSpendProof(
           {
             secret,
             amount: BigInt(Math.floor(amount * 1e9)),
             balance: BigInt(100 * 1e9), // TODO: Get actual balance
             merkleProof: path,
-            merkleRoot: BigInt('0x' + (currentRoot.startsWith('0x') ? currentRoot.slice(2) : currentRoot)),
+            merkleRoot: BigInt(
+              '0x' + (currentRoot.startsWith('0x') ? currentRoot.slice(2) : currentRoot)
+            ),
             recipient,
           },
           useMockProofs
         );
-        
+
         if (!proof || !proof.nullifier || !proof.publicSignals) {
           throw new Error('Invalid proof structure returned from generateSpendProof');
         }
-        
+
         console.log('[App] ✓ ZK proof generated successfully');
       } catch (proofErr) {
         console.error('[App] ✗ Proof generation failed:', proofErr);
@@ -269,7 +302,7 @@ export default function Home() {
         updateStep('zk-proof', 'error', errorMsg);
         throw new Error(`Proof generation failed: ${errorMsg}`);
       }
-      
+
       updateStep('zk-proof', 'complete', undefined, `Proof: ${proof.nullifier.slice(0, 20)}...`);
       console.log('[App] ✓ ZK proof complete');
       console.log('[App]   - Nullifier:', proof.nullifier.slice(0, 16) + '...');
@@ -283,7 +316,7 @@ export default function Home() {
         merkleProof,
         currentRoot
       );
-      
+
       if (!isValid) {
         throw new Error('Local proof verification failed - Merkle root mismatch');
       }
@@ -292,53 +325,55 @@ export default function Home() {
       // Step 6: Build transaction
       updateStep('build-tx', 'active');
       console.log('[App] Step 6: Building Solana transaction...');
-      
+
       console.log('[App] Program IDs:', {
         privacyPay: process.env.NEXT_PUBLIC_PROGRAM_ID,
         zkVerifier: process.env.NEXT_PUBLIC_VERIFIER_ID,
       });
-      
+
       // REAL TRANSACTION MODE - Program deployed successfully
       const useMockTransaction = false;
-      
+
       if (useMockTransaction) {
         console.log('[App] ⚠ Using MOCK transaction mode (program has compile errors)');
-        
+
         // Generate a fake transaction signature
-        const mockSignature = 'mock_' + Array.from(crypto.getRandomValues(new Uint8Array(32)))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('')
-          .slice(0, 88);
-        
+        const mockSignature =
+          'mock_' +
+          Array.from(crypto.getRandomValues(new Uint8Array(32)))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('')
+            .slice(0, 88);
+
         updateStep('build-tx', 'complete', undefined, '1 instruction (MOCK)');
         updateStep('sign-tx', 'active');
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
+
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
         updateStep('sign-tx', 'complete', undefined, `Tx: ${mockSignature.slice(0, 16)}...`);
         setTxSignature(mockSignature);
-        
+
         updateStep('confirm', 'active');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         updateStep('confirm', 'complete', undefined, '✓ Mock Confirmed');
-        
+
         console.log('[App] ✓ Mock transaction completed:', mockSignature);
         console.log('[App] ⚠ This is a DEMONSTRATION ONLY - no real SOL was transferred');
         console.log('[App] ⚠ Fix program compile errors to enable real transactions');
-        
+
         setProofStatus('confirmed');
         setLoading(false);
-        
+
         if (currentTxId) {
           updateStatus(currentTxId, 'confirmed', mockSignature);
         }
-        
+
         return;
       }
-      
-      const provider = new AnchorProvider(connection, wallet as any, { 
+
+      const provider = new AnchorProvider(connection, wallet as any, {
         commitment: 'confirmed',
-        preflightCommitment: 'confirmed'
+        preflightCommitment: 'confirmed',
       });
 
       // Convert merkle root to 32-byte Buffer
@@ -349,7 +384,7 @@ export default function Home() {
       } else {
         merkleRootBuffer = Buffer.alloc(32, 0);
       }
-      
+
       console.log('[App] Merkle root for transaction:', {
         hex: rootHex,
         buffer: Array.from(merkleRootBuffer).slice(0, 8),
@@ -365,28 +400,30 @@ export default function Home() {
           recipient: new PublicKey(recipient),
           merkleRoot: merkleRootBuffer,
         });
-        
+
         // Ensure transaction has recent blockhash and fee payer
         console.log('[App] Fetching latest blockhash...');
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(
+          'confirmed'
+        );
         tx.recentBlockhash = blockhash;
         tx.lastValidBlockHeight = lastValidBlockHeight;
         tx.feePayer = wallet.publicKey;
-        
+
         console.log('[App] ✓ Transaction configured:', {
           blockhash: blockhash.slice(0, 16) + '...',
           lastValidBlockHeight,
           feePayer: wallet.publicKey.toString(),
           instructionCount: tx.instructions.length,
         });
-        
+
         console.log('[App] ✓ Transaction built successfully');
       } catch (txErr) {
         const txErrMsg = txErr instanceof Error ? txErr.message : String(txErr);
         console.error('[App] Transaction build failed:', txErrMsg);
         throw new Error(`Transaction build failed: ${txErrMsg}`);
       }
-      
+
       updateStep('build-tx', 'complete', undefined, `${tx.instructions.length} instructions`);
 
       // Step 7: Submit transaction
@@ -398,31 +435,33 @@ export default function Home() {
         instructionCount: tx.instructions.length,
         signers: tx.signatures.length,
       });
-      
+
       let signature: string | undefined;
-      
+
       try {
         console.log('[App] Requesting wallet signature...');
-        
+
         // Simulate transaction first to catch errors early
         console.log('[App] Simulating transaction...');
         try {
           const simulation = await connection.simulateTransaction(tx);
           console.log('[App] Simulation result:', simulation);
-          
+
           if (simulation.value.err) {
             console.error('[App] ✗ Simulation failed:', simulation.value.err);
             console.error('[App] ✗ Simulation logs:', simulation.value.logs);
-            throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
+            throw new Error(
+              `Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`
+            );
           }
-          
+
           console.log('[App] ✓ Simulation successful');
           console.log('[App] Simulation logs:', simulation.value.logs);
         } catch (simErr) {
           console.error('[App] ✗ Simulation error:', simErr);
           throw simErr;
         }
-        
+
         // Send transaction using wallet adapter
         // Note: wallet.sendTransaction handles signing AND sending to network
         console.log('[App] Sending transaction to wallet for signing...');
@@ -430,42 +469,41 @@ export default function Home() {
           skipPreflight: true, // We already simulated above
           preflightCommitment: 'confirmed',
         });
-        
+
         console.log('[App] ✓ Transaction sent! Signature:', signature);
         console.log('[App] ✓ Signature length:', signature.length);
         updateStep('sign-tx', 'complete', undefined, `Tx: ${signature.slice(0, 16)}...`);
-        
+
         // Set signature immediately so user can see it
         setTxSignature(signature);
         setMerkleRoot(currentRoot);
-        
+
         // Update transaction status to confirmed immediately (signature received = success)
         if (currentTxId) {
           updateStatus(currentTxId, 'confirmed', signature);
         }
-        
+
         setProofStatus('confirmed');
         setLoading(false); // Clear loading state immediately after signature is obtained
-        
       } catch (signErr: any) {
         // Check if we got a signature before the error
         if (signature) {
           console.warn('[App] ⚠ Error occurred AFTER signature was obtained:', signErr.message);
           console.warn('[App] ⚠ Transaction was likely sent successfully - signature:', signature);
           console.warn('[App] ⚠ Continuing to confirmation...');
-          
+
           // Ensure UI is updated with signature
           if (!txSignature) {
             setTxSignature(signature);
             setMerkleRoot(currentRoot);
             updateStep('sign-tx', 'complete', undefined, `Tx: ${signature.slice(0, 16)}...`);
           }
-          
+
           // Update transaction status to confirmed immediately
           if (currentTxId) {
             updateStatus(currentTxId, 'confirmed', signature);
           }
-          
+
           setProofStatus('confirmed');
           setLoading(false); // Clear loading state
           // Don't throw - continue to confirmation
@@ -478,18 +516,21 @@ export default function Home() {
             stack: signErr.stack,
             name: signErr.name,
           });
-          
+
           // Extract meaningful error message
           let errorMessage = 'Transaction failed';
-          
+
           if (signErr.message) {
-            if (signErr.message.includes('User rejected') || signErr.message.includes('User cancelled')) {
+            if (
+              signErr.message.includes('User rejected') ||
+              signErr.message.includes('User cancelled')
+            ) {
               errorMessage = 'Transaction rejected by user';
             } else {
               errorMessage = signErr.message;
             }
           }
-          
+
           updateStep('sign-tx', 'error', errorMessage);
           throw new Error(errorMessage);
         }
@@ -505,7 +546,7 @@ export default function Home() {
       updateStep('confirm', 'active');
       console.log('[App] Step 8: Confirming transaction in background...');
       console.log('[App] Signature to confirm:', signature);
-      
+
       // Don't await - let confirmation happen in background
       (async () => {
         try {
@@ -513,20 +554,23 @@ export default function Home() {
           let confirmed = false;
           let attempts = 0;
           const maxAttempts = 10; // Reduced from 30
-          
+
           while (!confirmed && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Check every 1 second
-            
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Check every 1 second
+
             try {
               const statuses = await connection.getSignatureStatuses([signature]);
               const status = statuses.value[0];
-              
+
               console.log(`[App] Confirmation attempt ${attempts + 1}/${maxAttempts}:`, status);
-              
-              if (status?.confirmationStatus === 'confirmed' || status?.confirmationStatus === 'finalized') {
+
+              if (
+                status?.confirmationStatus === 'confirmed' ||
+                status?.confirmationStatus === 'finalized'
+              ) {
                 confirmed = true;
                 console.log('[App] ✓ Transaction confirmed on-chain!');
-                
+
                 if (status.err) {
                   console.error('[App] ✗ Transaction failed on-chain:', status.err);
                 } else {
@@ -537,15 +581,15 @@ export default function Home() {
             } catch (statusErr) {
               console.warn('[App] ⚠ Status check error:', statusErr);
             }
-            
+
             attempts++;
           }
-          
+
           if (!confirmed) {
             console.log('[App] ℹ Transaction pending - check explorer for status');
             updateStep('confirm', 'complete', undefined, '✓ Sent (check explorer)');
           }
-          
+
           // Update Light Protocol state
           try {
             await lightClient.storeCompressedCommitment(commitment.toString(), wallet.publicKey);
@@ -553,7 +597,7 @@ export default function Home() {
           } catch (lightErr) {
             console.warn('[App] ⚠ Light Protocol update failed (non-critical):', lightErr);
           }
-          
+
           console.log('[App] ✅ Payment complete!');
           console.log('[App]   - Transaction:', signature);
           console.log('[App]   - Explorer:', getExplorerUrl(signature));
@@ -565,26 +609,27 @@ export default function Home() {
           updateStep('confirm', 'complete', undefined, '✓ Sent (check explorer)');
         }
       })();
-      
+
       // Don't wait for confirmation - transaction is already successful
-      
     } catch (err: any) {
       console.error('[App] ❌ Payment failed:', err);
       setProofStatus('error');
       setLoading(false); // Clear loading state on error
-      
+
       // Mark transaction as failed
       if (currentTxId) {
         updateStatus(currentTxId, 'failed', err.message || 'Unknown error');
       }
-      
+
       // Mark failed step
       const errorMsg = err.message || 'Unknown error';
-      const failedSteps = transactionSteps.filter(s => s.status === 'active' || s.status === 'idle');
+      const failedSteps = transactionSteps.filter(
+        (s) => s.status === 'active' || s.status === 'idle'
+      );
       if (failedSteps.length > 0) {
         updateStep(failedSteps[0].id, 'error', errorMsg);
       }
-      
+
       let userMsg = 'Transaction failed. Please try again.';
       if (errorMsg.includes('rejected')) {
         userMsg = 'Transaction was rejected by your wallet.';
@@ -597,7 +642,7 @@ export default function Home() {
       } else {
         userMsg = errorMsg;
       }
-      
+
       console.error('[App] ✗ Transaction error:', errorMsg);
       setConnectionError(userMsg);
       setTimeout(() => setConnectionError(''), 8000);
@@ -679,7 +724,9 @@ export default function Home() {
         {/* Error Banner */}
         {connectionError && (
           <div className="mb-4 sm:mb-6 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-3 sm:p-4 flex items-start sm:items-center justify-between gap-2">
-            <span className="text-red-800 dark:text-red-200 text-xs sm:text-sm flex-1">{connectionError}</span>
+            <span className="text-red-800 dark:text-red-200 text-xs sm:text-sm flex-1">
+              {connectionError}
+            </span>
             <button
               onClick={() => setConnectionError('')}
               className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex-shrink-0 text-lg sm:text-xl"
@@ -739,7 +786,7 @@ export default function Home() {
             <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-50 mb-4">
               🔒 Privacy Layer Steps
             </h3>
-            
+
             {/* Real-time Step Progress */}
             <div className="space-y-3">
               {transactionSteps.map((step, index) => {
@@ -747,7 +794,7 @@ export default function Home() {
                 const isComplete = step.status === 'complete';
                 const isError = step.status === 'error';
                 const isIdle = step.status === 'idle';
-                
+
                 return (
                   <div
                     key={step.id}
@@ -776,48 +823,61 @@ export default function Home() {
                       >
                         {isComplete ? '✓' : isError ? '✕' : index + 1}
                       </div>
-                      
+
                       {/* Step Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className={`text-sm font-semibold ${
-                            isActive
-                              ? 'text-blue-900 dark:text-blue-100'
-                              : isComplete
-                              ? 'text-green-900 dark:text-green-100'
-                              : isError
-                              ? 'text-red-900 dark:text-red-100'
-                              : 'text-stone-600 dark:text-stone-400'
-                          }`}>
+                          <h4
+                            className={`text-sm font-semibold ${
+                              isActive
+                                ? 'text-blue-900 dark:text-blue-100'
+                                : isComplete
+                                ? 'text-green-900 dark:text-green-100'
+                                : isError
+                                ? 'text-red-900 dark:text-red-100'
+                                : 'text-stone-600 dark:text-stone-400'
+                            }`}
+                          >
                             {step.label}
                           </h4>
                           {isActive && (
                             <div className="flex gap-1">
-                              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                              <div
+                                className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"
+                                style={{ animationDelay: '0ms' }}
+                              ></div>
+                              <div
+                                className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"
+                                style={{ animationDelay: '150ms' }}
+                              ></div>
+                              <div
+                                className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"
+                                style={{ animationDelay: '300ms' }}
+                              ></div>
                             </div>
                           )}
                         </div>
-                        <p className={`text-xs ${
-                          isActive
-                            ? 'text-blue-700 dark:text-blue-300'
-                            : isComplete
-                            ? 'text-green-700 dark:text-green-300'
-                            : isError
-                            ? 'text-red-700 dark:text-red-300'
-                            : 'text-stone-500 dark:text-stone-500'
-                        }`}>
+                        <p
+                          className={`text-xs ${
+                            isActive
+                              ? 'text-blue-700 dark:text-blue-300'
+                              : isComplete
+                              ? 'text-green-700 dark:text-green-300'
+                              : isError
+                              ? 'text-red-700 dark:text-red-300'
+                              : 'text-stone-500 dark:text-stone-500'
+                          }`}
+                        >
                           {step.description}
                         </p>
-                        
+
                         {/* Error Message */}
                         {isError && step.error && (
                           <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-xs text-red-800 dark:text-red-200">
                             {step.error}
                           </div>
                         )}
-                        
+
                         {/* Data/Result Display */}
                         {isComplete && step.data && (
                           <div className="mt-2 p-2 bg-green-100 dark:bg-green-900/30 rounded text-xs text-green-800 dark:text-green-200 font-mono break-all">
@@ -830,7 +890,7 @@ export default function Home() {
                 );
               })}
             </div>
-            
+
             {/* Status Summary */}
             {loading && (
               <div className="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700">
@@ -838,16 +898,26 @@ export default function Home() {
                   <span className="text-stone-600 dark:text-stone-400">Processing...</span>
                   <div className="flex items-center gap-2">
                     <div className="w-16 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 animate-pulse" style={{ width: `${(transactionSteps.filter(s => s.status === 'complete').length / transactionSteps.length) * 100}%` }}></div>
+                      <div
+                        className="h-full bg-blue-600 animate-pulse"
+                        style={{
+                          width: `${
+                            (transactionSteps.filter((s) => s.status === 'complete').length /
+                              transactionSteps.length) *
+                            100
+                          }%`,
+                        }}
+                      ></div>
                     </div>
                     <span className="text-stone-900 dark:text-stone-100 font-semibold">
-                      {transactionSteps.filter(s => s.status === 'complete').length}/{transactionSteps.length}
+                      {transactionSteps.filter((s) => s.status === 'complete').length}/
+                      {transactionSteps.length}
                     </span>
                   </div>
                 </div>
               </div>
             )}
-            
+
             {!loading && !txSignature && (
               <div className="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700 text-center">
                 <p className="text-xs text-stone-500 dark:text-stone-500">
@@ -867,9 +937,13 @@ export default function Home() {
                   ⚠️ Demo Mode - Mock Transaction
                 </p>
                 <p className="text-yellow-700 dark:text-yellow-300 text-xs">
-                  This is a demonstration only. The Solana program has compile errors that prevent real transactions. 
-                  All privacy layers (ZK proof, Merkle tree, commitment) worked correctly. 
-                  <a href="https://github.com/your-repo" className="underline ml-1">View documentation</a> to fix the program.
+                  This is a demonstration only. The Solana program has compile errors that prevent
+                  real transactions. All privacy layers (ZK proof, Merkle tree, commitment) worked
+                  correctly.
+                  <a href="https://github.com/your-repo" className="underline ml-1">
+                    View documentation
+                  </a>{' '}
+                  to fix the program.
                 </p>
               </div>
             )}
@@ -888,7 +962,9 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 sm:py-3 rounded-xl text-center transition text-sm sm:text-base"
               >
-                {txSignature.startsWith('mock_') ? 'View Program on Explorer →' : 'View on Solana Explorer →'}
+                {txSignature.startsWith('mock_')
+                  ? 'View Program on Explorer →'
+                  : 'View on Solana Explorer →'}
               </a>
               <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm mt-4 sm:mt-6">
                 <div>
@@ -952,7 +1028,14 @@ export default function Home() {
       </div>
 
       {/* Transaction Progress UI */}
-      {loading && <TransactionUI steps={transactionSteps} txSignature={txSignature} merkleRoot={merkleRoot} loading={loading} />}
+      {loading && (
+        <TransactionUI
+          steps={transactionSteps}
+          txSignature={txSignature}
+          merkleRoot={merkleRoot}
+          loading={loading}
+        />
+      )}
     </main>
   );
 }

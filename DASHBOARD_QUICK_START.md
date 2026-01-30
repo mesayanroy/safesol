@@ -7,12 +7,14 @@
 ## 🎯 Quick Setup (2 minutes)
 
 ### Step 1: Open the App
+
 ```
 URL: http://localhost:3000
 Browser: Chrome, Firefox, Safari, Edge
 ```
 
 ### Step 2: Connect Wallet
+
 ```
 Click: "Connect Wallet" button
 Select: Phantom or Solflare
@@ -23,6 +25,7 @@ Status: Wallet connected ✓
 ### Step 3: Send Your First Payment
 
 #### Domestic Payment (No Limit)
+
 ```
 1. Select: 🏠 "Domestic"
 2. Enter recipient address (Solana wallet)
@@ -33,6 +36,7 @@ Status: Wallet connected ✓
 ```
 
 #### Cross-Border Payment (10 SOL/day limit)
+
 ```
 1. Select: 🌍 "Cross-Border"
 2. Check remaining budget (displays limit)
@@ -44,6 +48,7 @@ Status: Wallet connected ✓
 ```
 
 ### Step 4: View Dashboard
+
 ```
 Section: "Transaction Dashboard"
 Shows:
@@ -60,16 +65,17 @@ Shows:
 
 ### Statistics Cards
 
-| Card | What It Shows | Updates |
-|------|---------------|---------|
-| 📊 Total Transactions | All TXs ever (today) | Every TX |
-| ✓ Confirmed | Successfully processed | Every 5s |
-| ✗ Failed | Failed or timed out | Every TX |
-| 💰 Total Spent | Sum of confirmed amounts | Every 5s |
-| 🏠 Domestic | Domestic TX count | Every TX |
-| 🌍 Cross-Border | Cross-border TX count | Every TX |
+| Card                  | What It Shows            | Updates  |
+| --------------------- | ------------------------ | -------- |
+| 📊 Total Transactions | All TXs ever (today)     | Every TX |
+| ✓ Confirmed           | Successfully processed   | Every 5s |
+| ✗ Failed              | Failed or timed out      | Every TX |
+| 💰 Total Spent        | Sum of confirmed amounts | Every 5s |
+| 🏠 Domestic           | Domestic TX count        | Every TX |
+| 🌍 Cross-Border       | Cross-border TX count    | Every TX |
 
 ### Daily Limit Card
+
 ```
 Gauge:     0% ━━━━━ 100%
 Example:   2 SOL / 10 SOL used
@@ -181,6 +187,7 @@ Warning:   "⚠️ Only 2 SOL left today"
 ## 📱 Mobile Experience
 
 ### Layout
+
 - Single column on phone
 - Card-based design
 - Large buttons (easy to tap)
@@ -188,6 +195,7 @@ Warning:   "⚠️ Only 2 SOL left today"
 - Scrollable table
 
 ### Gesture Support
+
 - Tap to select payment type
 - Tap buttons to filter
 - Pull to refresh (optional)
@@ -198,18 +206,21 @@ Warning:   "⚠️ Only 2 SOL left today"
 ## 🔍 Understanding Transaction Status
 
 ### ⏳ Pending
+
 - Transaction submitted
 - Waiting for blockchain confirmation
 - Takes 10-30 seconds typically
 - Auto-monitoring in progress
 
 ### ✓ Confirmed
+
 - Successfully mined on blockchain
 - Cryptographically verified
 - Funds transferred
 - Permanent record
 
 ### ✗ Failed
+
 - Transaction error occurred
 - Not processed
 - No funds transferred
@@ -220,6 +231,7 @@ Warning:   "⚠️ Only 2 SOL left today"
 ## 💡 Pro Tips
 
 ### Tip 1: Check Remaining Budget Before Sending
+
 ```
 Payment Type: Cross-Border
 Shows: "Remaining: 3.5 SOL"
@@ -227,6 +239,7 @@ Action: Send max 3.5 SOL
 ```
 
 ### Tip 2: Use Domestic for Large Amounts
+
 ```
 Need to send 15 SOL?
 → Use Domestic (no daily limit)
@@ -235,6 +248,7 @@ Need to send 15 SOL?
 ```
 
 ### Tip 3: Monitor Confirmations
+
 ```
 After sending:
 • Table shows ⏳ Pending
@@ -244,6 +258,7 @@ After sending:
 ```
 
 ### Tip 4: Export for Accounting
+
 ```
 End of month:
 1. Click "Export"
@@ -253,6 +268,7 @@ End of month:
 ```
 
 ### Tip 5: Filter for Reconciliation
+
 ```
 Filter by:
 • Status = Failed (to retry)
@@ -265,12 +281,14 @@ Filter by:
 ## ⚡ Real-Time Updates
 
 ### Auto-Refresh
+
 - Dashboard updates every 5 seconds
 - Transaction statuses checked every 1 second
 - Limit calculations live
 - No manual refresh needed
 
 ### Confirmation Monitoring
+
 - Automatic in background
 - Retries up to 60 times (1 minute)
 - Marks failed if timeout
@@ -281,6 +299,7 @@ Filter by:
 ## 🆘 Troubleshooting
 
 ### Problem: Wallet Won't Connect
+
 ```
 Solution:
 1. Install Phantom or Solflare extension
@@ -291,6 +310,7 @@ Solution:
 ```
 
 ### Problem: Transaction Pending Too Long
+
 ```
 Solution:
 1. Wait up to 1 minute
@@ -301,6 +321,7 @@ Solution:
 ```
 
 ### Problem: "Limit Exceeded" Error
+
 ```
 Solution:
 1. Check remaining budget in form
@@ -310,6 +331,7 @@ Solution:
 ```
 
 ### Problem: Export File is Empty
+
 ```
 Solution:
 1. Send at least one transaction first
@@ -319,6 +341,7 @@ Solution:
 ```
 
 ### Problem: Dashboard Not Updating
+
 ```
 Solution:
 1. Refresh page (F5 or Cmd+R)
@@ -333,18 +356,21 @@ Solution:
 ## 🔐 Security Notes
 
 ### Your Privacy
+
 - Recipient address encrypted in proof
 - Amount never sent to blockchain
 - Only cryptographic commitment visible
 - ZK proofs verify without revealing data
 
 ### Limit Enforcement
+
 - Client-side checking (fast)
 - Smart contract validation (secure)
 - Cannot bypass limits with hacks
 - Daily auto-reset is automatic
 
 ### Wallet Safety
+
 - Private keys stay in Phantom/Solflare
 - Never exposed to web app
 - Each transaction requires your signature
@@ -355,6 +381,7 @@ Solution:
 ## 📈 Understanding Your Data
 
 ### What Gets Stored
+
 ```
 Local Storage (Browser):
 ├─ Transaction history
@@ -364,6 +391,7 @@ Local Storage (Browser):
 ```
 
 ### What Stays Private
+
 ```
 NEVER Stored:
 ├─ Private keys
@@ -378,6 +406,7 @@ NEVER Stored:
 ## 🎯 Common Use Cases
 
 ### Use Case 1: Business Payments
+
 ```
 1. Send to vendor (domestic)
 2. Send to international contractor (cross-border)
@@ -386,6 +415,7 @@ NEVER Stored:
 ```
 
 ### Use Case 2: Privacy-Focused
+
 ```
 1. Use cross-border for sensitive payments
 2. Limit tracking to daily amount
@@ -394,6 +424,7 @@ NEVER Stored:
 ```
 
 ### Use Case 3: Testing
+
 ```
 1. Send test payments
 2. Verify dashboard updates
@@ -406,6 +437,7 @@ NEVER Stored:
 ## 📞 Support
 
 ### If Something Breaks
+
 1. Check browser console (F12)
 2. Look for error messages
 3. Note the exact error
@@ -413,6 +445,7 @@ NEVER Stored:
 5. Clear cache and try again
 
 ### Need Help?
+
 - Check REAL_TIME_DASHBOARD.md for detailed docs
 - Review transaction history in dashboard
 - Export data for offline analysis
@@ -431,7 +464,7 @@ You now have a **production-grade transaction management system** with:
 ✅ Advanced filtering  
 ✅ Export functionality  
 ✅ Dark mode support  
-✅ Mobile responsive  
+✅ Mobile responsive
 
 **Start here**: http://localhost:3000
 

@@ -1,6 +1,6 @@
 /**
  * Light Protocol Merkle Tree Compression
- * 
+ *
  * Implements real-time merkle tree compression for privacy-pay circuit
  * - Stores commitments in compressed state tree
  * - Generates efficient merkle proofs

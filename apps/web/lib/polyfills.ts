@@ -1,6 +1,6 @@
 /**
  * Browser Polyfills
- * 
+ *
  * Provides Node.js APIs that are needed in the browser
  */
 

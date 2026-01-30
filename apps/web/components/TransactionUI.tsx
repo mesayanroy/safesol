@@ -21,7 +21,7 @@ interface TransactionUIProps {
 }
 
 export function TransactionUI({ steps, txSignature, merkleRoot, loading }: TransactionUIProps) {
-  const completedCount = steps.filter(s => s.status === 'complete').length;
+  const completedCount = steps.filter((s) => s.status === 'complete').length;
   const totalCount = steps.length;
 
   return (
@@ -83,11 +83,11 @@ export function TransactionUI({ steps, txSignature, merkleRoot, loading }: Trans
       )}
 
       {/* Error State */}
-      {steps.some(s => s.status === 'error') && !txSignature && (
+      {steps.some((s) => s.status === 'error') && !txSignature && (
         <div className="px-6 py-4 border-t border-slate-800 bg-red-900/20 border-b border-red-700">
           {steps
-            .filter(s => s.status === 'error')
-            .map(step => (
+            .filter((s) => s.status === 'error')
+            .map((step) => (
               <div key={step.id} className="space-y-2">
                 <p className="text-sm font-medium text-red-400">✗ {step.label}</p>
                 {step.error && (
@@ -136,26 +136,24 @@ function TransactionStep({
     <div className={`border rounded-lg p-3 transition ${bgColor}`}>
       <div className="flex items-start gap-3">
         {/* Status Icon */}
-        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-          isComplete
-            ? 'bg-green-600 text-white'
-            : isError
-            ? 'bg-red-600 text-white'
-            : isActive
-            ? 'bg-blue-600 text-white animate-pulse'
-            : 'bg-slate-700 text-slate-400'
-        }`}>
+        <div
+          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            isComplete
+              ? 'bg-green-600 text-white'
+              : isError
+              ? 'bg-red-600 text-white'
+              : isActive
+              ? 'bg-blue-600 text-white animate-pulse'
+              : 'bg-slate-700 text-slate-400'
+          }`}
+        >
           {isComplete ? '✓' : isError ? '✗' : isActive ? '⋯' : index + 1}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium ${textColor}`}>
-            {step.label}
-          </p>
-          {step.description && (
-            <p className="text-xs text-slate-400 mt-1">{step.description}</p>
-          )}
+          <p className={`text-sm font-medium ${textColor}`}>{step.label}</p>
+          {step.description && <p className="text-xs text-slate-400 mt-1">{step.description}</p>}
           {isError && step.error && (
             <p className="text-xs text-red-400 mt-1 break-all">{step.error}</p>
           )}

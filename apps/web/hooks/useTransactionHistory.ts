@@ -67,12 +67,7 @@ export function useTransactionHistory() {
 
   // Record transaction
   const recordTransaction = useCallback(
-    (
-      signature: string,
-      amount: number,
-      recipient: string,
-      type: TransactionType
-    ): string => {
+    (signature: string, amount: number, recipient: string, type: TransactionType): string => {
       if (!manager) throw new Error('Manager not initialized');
 
       const record = manager.recordTransaction(signature, amount, recipient, type, 'pending');
@@ -92,7 +87,7 @@ export function useTransactionHistory() {
   const updateStatus = useCallback(
     (txId: string, status: TransactionStatus, signatureOrError?: string) => {
       if (!manager) return;
-      
+
       // If status is confirmed, the third param is signature
       // If status is failed, the third param is error message
       if (status === 'confirmed') {
@@ -102,7 +97,7 @@ export function useTransactionHistory() {
       } else {
         manager.updateTransactionStatus(txId, status);
       }
-      
+
       refresh();
     },
     [manager, refresh]

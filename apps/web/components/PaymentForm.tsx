@@ -5,7 +5,11 @@ import { PublicKey } from '@solana/web3.js';
 import { InfoIcon, ProofStatusBadge } from './UI';
 
 interface PaymentFormProps {
-  onSubmit: (recipient: string, amount: number, paymentType: 'domestic' | 'cross-border') => Promise<void>;
+  onSubmit: (
+    recipient: string,
+    amount: number,
+    paymentType: 'domestic' | 'cross-border'
+  ) => Promise<void>;
   loading: boolean;
   connected: boolean;
   proofStatus?: 'idle' | 'generating' | 'generated' | 'submitted' | 'confirmed' | 'error';
@@ -46,7 +50,9 @@ const PaymentForm: FC<PaymentFormProps> = ({
     // Check cross-border limit
     if (paymentType === 'cross-border' && crossBorderLimitRemaining !== undefined) {
       if (amountNum > crossBorderLimitRemaining) {
-        newErrors.amount = `Cross-border limit exceeded. Remaining: ${crossBorderLimitRemaining.toFixed(2)} SOL`;
+        newErrors.amount = `Cross-border limit exceeded. Remaining: ${crossBorderLimitRemaining.toFixed(
+          2
+        )} SOL`;
       }
     }
 
@@ -74,7 +80,7 @@ const PaymentForm: FC<PaymentFormProps> = ({
           Payment Type
         </label>
         <div className="grid grid-cols-2 gap-3">
-          {(['domestic', 'cross-border'] as const).map(type => (
+          {(['domestic', 'cross-border'] as const).map((type) => (
             <button
               key={type}
               type="button"
@@ -94,20 +100,22 @@ const PaymentForm: FC<PaymentFormProps> = ({
 
         {/* Cross-Border Limit Warning */}
         {paymentType === 'cross-border' && crossBorderLimitRemaining !== undefined && (
-          <div className={`mt-3 p-3 rounded-lg text-xs sm:text-sm ${
-            crossBorderLimitRemaining > 0
-              ? 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
-              : 'bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
-          }`}>
+          <div
+            className={`mt-3 p-3 rounded-lg text-xs sm:text-sm ${
+              crossBorderLimitRemaining > 0
+                ? 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
+                : 'bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+            }`}
+          >
             {crossBorderLimitRemaining > 0 ? (
               <>
-                <span className="font-semibold">⚠️ Daily Limit:</span> {' '}
+                <span className="font-semibold">⚠️ Daily Limit:</span>{' '}
                 {crossBorderLimitRemaining.toFixed(2)} SOL remaining today
               </>
             ) : (
               <>
-                <span className="font-semibold">❌ Limit Exceeded:</span> {' '}
-                Daily cross-border limit reached. Try again tomorrow or send a domestic payment.
+                <span className="font-semibold">❌ Limit Exceeded:</span> Daily cross-border limit
+                reached. Try again tomorrow or send a domestic payment.
               </>
             )}
           </div>
@@ -181,7 +189,9 @@ const PaymentForm: FC<PaymentFormProps> = ({
       {/* Proof Status */}
       {proofStatus !== 'idle' && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 p-3 bg-stone-100 dark:bg-stone-900 rounded-xl">
-          <span className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">ZK Proof Status</span>
+          <span className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">
+            ZK Proof Status
+          </span>
           <ProofStatusBadge status={proofStatus} />
         </div>
       )}

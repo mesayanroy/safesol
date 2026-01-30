@@ -12,6 +12,7 @@ SafeSol now integrates **Light Protocol** for real-time merkle tree compression.
 ### What is Light Protocol?
 
 Light Protocol is a Solana compression layer that:
+
 - **Compresses** account data using merkle trees
 - **Proves** account validity without storing full state
 - **Reduces** costs by **50%+**
@@ -22,6 +23,7 @@ Light Protocol is a Solana compression layer that:
 ## 📊 Compression Benefits
 
 ### Before Light Protocol (Traditional Merkle Tree)
+
 ```
 Storage per leaf: 32 bytes
 100 commitments: 3,200 bytes
@@ -30,6 +32,7 @@ Storage per leaf: 32 bytes
 ```
 
 ### After Light Protocol (Compressed)
+
 ```
 Storage per transaction: 32 * 20 = 640 bytes (proof only)
 Compression ratio: 32B → 0.16B (99.5% smaller)
@@ -79,44 +82,52 @@ User Input
 ### Files Added/Modified
 
 #### 1. **lib/light-compression.ts** (NEW)
+
 Merkle tree compression engine:
+
 ```typescript
 export class CompressedMerkleTree {
   // Add leaf to compressed tree
-  addLeaf(commitment: bigint): number
-  
+  addLeaf(commitment: bigint): number;
+
   // Generate merkle proof
-  getProof(leafIndex: number): MerkleProofData
-  
+  getProof(leafIndex: number): MerkleProofData;
+
   // Get statistics
-  getStats(): TreeStats
-  
+  getStats(): TreeStats;
+
   // Real-time compression metrics
-  getCompressionRatio(): string
-  getGasOptimization(): string
+  getCompressionRatio(): string;
+  getGasOptimization(): string;
 }
 ```
 
 #### 2. **hooks/useTreeCompression.ts** (NEW)
+
 React hook for tree management:
+
 ```typescript
 export function useTreeCompression() {
-  const { addCommitment, getProof, getStats, resetTree } = useTreeCompression()
-  
+  const { addCommitment, getProof, getStats, resetTree } = useTreeCompression();
+
   // Real-time compression state
-  const { leafCount, compressionRatio, gasOptimization } = state
+  const { leafCount, compressionRatio, gasOptimization } = state;
 }
 ```
 
 #### 3. **components/CompressionStats.tsx** (NEW)
+
 Visual dashboard for compression metrics:
+
 - Live compression ratio
 - Gas savings
 - Storage visualization
 - Merkle root display
 
 #### 4. **components/TransactionVerificationTracker.tsx** (UPDATED)
+
 Added compression layer to verification flow:
+
 - Layer 1: **Merkle Tree Compression** (NEW)
 - Layer 2: ZK Proof Generation
 - Layer 3: Merkle Root Verification
@@ -125,7 +136,9 @@ Added compression layer to verification flow:
 - Layer 6: Payment Execution
 
 #### 5. **components/PaymentDemo.tsx** (UPDATED)
+
 Integrated compression into demo:
+
 - Shows compression happening before proof generation
 - Displays gas savings
 - Real-time compression metrics
@@ -185,14 +198,14 @@ let is_valid = verifyCompressedProof(&proof)?;
 
 ### Real-Time Metrics
 
-| Metric | Value | Impact |
-|--------|-------|--------|
-| **Compression Ratio** | 99.5% | Enormous storage savings |
-| **Gas Reduction** | 50% | 50% cheaper transactions |
-| **Proof Size** | 640 bytes | Merkle path (20 levels × 32) |
-| **Leaf Size** | 32 bytes | Original commitment |
-| **Verification Time** | ~5ms | Instant on-chain |
-| **Max Leaves** | 2^20 = 1M | 1 million commitments |
+| Metric                | Value     | Impact                       |
+| --------------------- | --------- | ---------------------------- |
+| **Compression Ratio** | 99.5%     | Enormous storage savings     |
+| **Gas Reduction**     | 50%       | 50% cheaper transactions     |
+| **Proof Size**        | 640 bytes | Merkle path (20 levels × 32) |
+| **Leaf Size**         | 32 bytes  | Original commitment          |
+| **Verification Time** | ~5ms      | Instant on-chain             |
+| **Max Leaves**        | 2^20 = 1M | 1 million commitments        |
 
 ### Example: 10,000 Commitments
 
@@ -213,12 +226,14 @@ Savings: 320 KB - 0.64 KB = 99.8% storage reduction
 ## 🎯 Use Cases
 
 ### Domestic Payments
+
 - Compress commitment from recipient
 - Prove commitment in compressed tree
 - Execute payment instantly
 - **Savings**: 50% gas, instant settlement
 
 ### Cross-Border Payments
+
 - Same compression benefits
 - Instant global settlement
 - 99.5% smaller transaction size
@@ -227,6 +242,7 @@ Savings: 320 KB - 0.64 KB = 99.8% storage reduction
 ### Scale
 
 Light Protocol compression enables:
+
 - **1000s of transactions/second** (vs 400 standard Solana)
 - **Millions of accounts** in single program
 - **Negligible storage costs** (~$0.01 per transaction)
@@ -240,10 +256,12 @@ Light Protocol compression enables:
 The compression maintains full security:
 
 1. **Merkle Proof Soundness**
+
    - Each proof cryptographically binds to merkle root
    - Proving membership in compressed tree
 
 2. **ZK Proof Verification**
+
    - Groth16 proof verifies merkle proof
    - No information leaked about amount
 
@@ -287,7 +305,7 @@ import { CompressedMerkleTree } from '@/lib/light-compression';
 const tree = new CompressedMerkleTree(20);
 
 // Add commitment
-const commitment = BigInt("0x1234567890abcdef...");
+const commitment = BigInt('0x1234567890abcdef...');
 const leafIndex = tree.addLeaf(commitment);
 
 // Get statistics
@@ -305,10 +323,10 @@ export function MyComponent() {
   const { addCommitment, getProof, leafCount, compressionRatio } = useTreeCompression();
 
   const handleAddCommitment = async () => {
-    const commitment = BigInt("0x...");
+    const commitment = BigInt('0x...');
     const leafIndex = await addCommitment(commitment);
     const proof = getProof(leafIndex);
-    
+
     console.log(`Added at index ${leafIndex}`);
     console.log(`Compression ratio: ${compressionRatio}`);
   };
@@ -335,7 +353,7 @@ const proof = tree.getProof(leafIndex);
 const circuitInput = {
   commitment: commitment.toString(),
   merkleRoot: proof.root.toString(),
-  merkleProof: proof.path.map(p => p.toString()),
+  merkleProof: proof.path.map((p) => p.toString()),
   // ... other inputs
 };
 
@@ -352,22 +370,22 @@ const tx = await submitPrivatePayment(zkProof, proof.root);
 
 ### Storage per Transaction
 
-| Scenario | Traditional | Light Protocol | Reduction |
-|----------|-------------|-----------------|-----------|
-| 1 commitment | 32 bytes | 32 bytes | 0% |
-| 10 commitments | 320 bytes | 640 bytes | -100% |
-| 100 commitments | 3.2 KB | 640 bytes | 80% |
-| 1,000 commitments | 32 KB | 640 bytes | 98% |
-| 10,000 commitments | 320 KB | 640 bytes | 99.8% |
+| Scenario           | Traditional | Light Protocol | Reduction |
+| ------------------ | ----------- | -------------- | --------- |
+| 1 commitment       | 32 bytes    | 32 bytes       | 0%        |
+| 10 commitments     | 320 bytes   | 640 bytes      | -100%     |
+| 100 commitments    | 3.2 KB      | 640 bytes      | 80%       |
+| 1,000 commitments  | 32 KB       | 640 bytes      | 98%       |
+| 10,000 commitments | 320 KB      | 640 bytes      | 99.8%     |
 
 ### Gas Costs
 
-| Operation | Without | With Light | Savings |
-|-----------|---------|-----------|---------|
-| Add commitment | 20,000 gas | 10,000 gas | 50% |
-| Merkle verification | 15,000 gas | 5,000 gas | 67% |
-| Payment execution | 30,000 gas | 15,000 gas | 50% |
-| **Total per TX** | **65,000 gas** | **30,000 gas** | **54%** |
+| Operation           | Without        | With Light     | Savings |
+| ------------------- | -------------- | -------------- | ------- |
+| Add commitment      | 20,000 gas     | 10,000 gas     | 50%     |
+| Merkle verification | 15,000 gas     | 5,000 gas      | 67%     |
+| Payment execution   | 30,000 gas     | 15,000 gas     | 50%     |
+| **Total per TX**    | **65,000 gas** | **30,000 gas** | **54%** |
 
 ---
 

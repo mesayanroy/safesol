@@ -8,12 +8,12 @@ pub mod zk_verifier {
     use super::*;
 
     /// Verify Groth16 ZK proof
-    /// 
+    ///
     /// Proof structure (256 bytes):
     /// - pi_a: G1 point (64 bytes) - 2 x 32 byte coordinates
     /// - pi_b: G2 point (128 bytes) - 2 x 2 x 32 byte coordinates  
     /// - pi_c: G1 point (64 bytes) - 2 x 32 byte coordinates
-    /// 
+    ///
     /// Public signals (variable length, 32 bytes each):
     /// - signal[0]: nullifier
     /// - signal[1]: merkleRoot
@@ -24,16 +24,10 @@ pub mod zk_verifier {
         public_signals: Vec<[u8; 32]>,
     ) -> Result<()> {
         // Validate proof size for Groth16
-        require!(
-            proof.len() >= 256,
-            ErrorCode::InvalidProofSize
-        );
+        require!(proof.len() >= 256, ErrorCode::InvalidProofSize);
 
         // Validate public signals
-        require!(
-            public_signals.len() >= 3,
-            ErrorCode::InvalidSignalCount
-        );
+        require!(public_signals.len() >= 3, ErrorCode::InvalidSignalCount);
 
         msg!("ZK Verifier: Processing proof");
         msg!("  Proof size: {} bytes", proof.len());
@@ -62,14 +56,14 @@ pub mod zk_verifier {
         // 2. Reconstruct public input hash
         // 3. Perform bilinear pairing check
         // 4. Verify: e(pi_a, pi_b) * e(-[publicInput], gamma) * e(-pi_c, delta) == e(alpha, beta)
-        
+
         msg!("✓ Proof verified (Groth16 verification active)");
-        
+
         Ok(())
     }
 
     /// Verify commitment in Merkle tree
-    /// 
+    ///
     /// Uses Poseidon hash for efficient on-chain verification
     pub fn verify_commitment(
         _ctx: Context<VerifyProof>,
@@ -83,10 +77,7 @@ pub mod zk_verifier {
             ErrorCode::MerkleProofMismatch
         );
 
-        require!(
-            merkle_proof.len() <= 20,
-            ErrorCode::MerkleProofTooLong
-        );
+        require!(merkle_proof.len() <= 20, ErrorCode::MerkleProofTooLong);
 
         msg!("Verifying commitment in Merkle tree");
         msg!("  Commitment: {:?}", &commitment[0..8]);
@@ -98,24 +89,21 @@ pub mod zk_verifier {
         // 3. Return error if mismatch
 
         msg!("✓ Commitment verified in Merkle tree");
-        
+
         Ok(())
     }
 
     /// Verify nullifier hasn't been used
-    pub fn verify_nullifier_unused(
-        _ctx: Context<VerifyProof>,
-        nullifier: [u8; 32],
-    ) -> Result<()> {
+    pub fn verify_nullifier_unused(_ctx: Context<VerifyProof>, nullifier: [u8; 32]) -> Result<()> {
         msg!("Checking nullifier: {:?}", &nullifier[0..8]);
-        
+
         // In production:
         // 1. Check if nullifier PDA exists
         // 2. If exists, proof has been used (double-spend)
         // 3. Return error if already used
-        
+
         msg!("✓ Nullifier is fresh");
-        
+
         Ok(())
     }
 }

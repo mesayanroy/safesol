@@ -79,7 +79,8 @@ export async function buildPrivatePaymentTx(
   const program = new Program(idl as any, provider);
 
   // Create nullifier seed from the nullifier hash
-  const nullifierSeed = params.nullifierSeed ?? Buffer.from(params.proof.nullifier.slice(0, 64), 'hex');
+  const nullifierSeed =
+    params.nullifierSeed ?? Buffer.from(params.proof.nullifier.slice(0, 64), 'hex');
   const [nullifierPDA] = findNullifierPDA(nullifierSeed);
   const [statePDA] = findStatePDA();
 
@@ -93,7 +94,9 @@ export async function buildPrivatePaymentTx(
     });
   } catch (err) {
     console.error('[Solana] ✗ Failed to serialize proof:', err);
-    throw new Error(`Proof serialization failed: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(
+      `Proof serialization failed: ${err instanceof Error ? err.message : String(err)}`
+    );
   }
 
   // Verify proof buffer size
@@ -106,7 +109,7 @@ export async function buildPrivatePaymentTx(
   if (merkleRootArray.length !== 32) {
     throw new Error(`Invalid merkle root size: expected 32 bytes, got ${merkleRootArray.length}`);
   }
-  
+
   // Prepare nullifier seed as fixed-size array [u8; 32]
   const nullifierSeedArray = Array.from(nullifierSeed);
   if (nullifierSeedArray.length < 32) {
@@ -116,12 +119,12 @@ export async function buildPrivatePaymentTx(
     }
   }
   const nullifierSeed32 = nullifierSeedArray.slice(0, 32);
-  
+
   // Convert public signals to Vec<[u8; 32]>
   // Each signal is a bigint that needs to be converted to a 32-byte array
   const publicSignalsArrays = params.proof.publicSignals.map((signal, idx) => {
     const sigBigInt = BigInt(signal);
-    
+
     // For merkleRoot (signal index 1), preserve full 256 bits
     // For other signals, truncate to 64 bits
     if (idx === 1) {
@@ -156,11 +159,11 @@ export async function buildPrivatePaymentTx(
   try {
     const tx = await program.methods
       .privateSpend(
-        merkleRootArray,           // [u8; 32]
-        params.amount,              // u64
-        Buffer.from(proofBytes),    // bytes
-        nullifierSeed32,            // [u8; 32]
-        publicSignalsArrays         // Vec<[u8; 32]>
+        merkleRootArray, // [u8; 32]
+        params.amount, // u64
+        Buffer.from(proofBytes), // bytes
+        nullifierSeed32, // [u8; 32]
+        publicSignalsArrays // Vec<[u8; 32]>
       )
       .accounts({
         payer: provider.wallet.publicKey,
@@ -192,7 +195,9 @@ export async function buildPrivatePaymentTx(
         recipient: params.recipient.toString(),
       },
     });
-    throw new Error(`Transaction build failed: ${buildErr instanceof Error ? buildErr.message : String(buildErr)}`);
+    throw new Error(
+      `Transaction build failed: ${buildErr instanceof Error ? buildErr.message : String(buildErr)}`
+    );
   }
 }
 
@@ -238,7 +243,10 @@ export async function getCurrentMerkleRoot(provider: AnchorProvider): Promise<Bu
 /**
  * Check if nullifier has been used (prevent double-spend)
  */
-export async function isNullifierUsed(connection: Connection, nullifierSeed: Buffer): Promise<boolean> {
+export async function isNullifierUsed(
+  connection: Connection,
+  nullifierSeed: Buffer
+): Promise<boolean> {
   const [nullifierPDA] = findNullifierPDA(nullifierSeed);
   const accountInfo = await connection.getAccountInfo(nullifierPDA);
   return accountInfo !== null;
@@ -250,7 +258,9 @@ export async function isNullifierUsed(connection: Connection, nullifierSeed: Buf
 export function getExplorerUrl(signature: string, cluster: string = 'devnet'): string {
   // Handle mock transactions
   if (signature.startsWith('mock_')) {
-    return `https://explorer.solana.com/address/${process.env.NEXT_PUBLIC_PROGRAM_ID || 'Csrxfr5aDNNMmozoGGfbLjYeU7Kjjs3ZH2Vy83c5Rpd8'}?cluster=${cluster}`;
+    return `https://explorer.solana.com/address/${
+      process.env.NEXT_PUBLIC_PROGRAM_ID || 'Csrxfr5aDNNMmozoGGfbLjYeU7Kjjs3ZH2Vy83c5Rpd8'
+    }?cluster=${cluster}`;
   }
   return `https://explorer.solana.com/tx/${signature}?cluster=${cluster}`;
 }

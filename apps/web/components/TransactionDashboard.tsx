@@ -61,7 +61,9 @@ const TypeBadge: FC<{ type: TransactionType }> = ({ type }) => {
   };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${variants[type]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${variants[type]}`}
+    >
       <span>{icons[type]}</span>
       <span>{type === 'domestic' ? 'Domestic' : 'Cross-Border'}</span>
     </span>
@@ -138,38 +140,12 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
-          <StatCard
-            label="Total Transactions"
-            value={stats.totalTransactions}
-            icon="📊"
-          />
-          <StatCard
-            label="Confirmed"
-            value={stats.confirmedTransactions}
-            icon="✓"
-            color="green"
-          />
-          <StatCard
-            label="Failed"
-            value={stats.failedTransactions}
-            icon="✗"
-            color="red"
-          />
-          <StatCard
-            label="Total Spent"
-            value={`${formatAmount(stats.totalSpent)} SOL`}
-            icon="💰"
-          />
-          <StatCard
-            label="Domestic"
-            value={stats.domesticCount}
-            icon="🏠"
-          />
-          <StatCard
-            label="Cross-Border"
-            value={stats.crossBorderCount}
-            icon="🌍"
-          />
+          <StatCard label="Total Transactions" value={stats.totalTransactions} icon="📊" />
+          <StatCard label="Confirmed" value={stats.confirmedTransactions} icon="✓" color="green" />
+          <StatCard label="Failed" value={stats.failedTransactions} icon="✗" color="red" />
+          <StatCard label="Total Spent" value={`${formatAmount(stats.totalSpent)} SOL`} icon="💰" />
+          <StatCard label="Domestic" value={stats.domesticCount} icon="🏠" />
+          <StatCard label="Cross-Border" value={stats.crossBorderCount} icon="🌍" />
         </div>
       )}
 
@@ -186,9 +162,7 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-stone-700 dark:text-stone-300">
-                  Spent Today
-                </span>
+                <span className="text-sm text-stone-700 dark:text-stone-300">Spent Today</span>
                 <span className="text-sm font-semibold text-stone-900 dark:text-stone-50">
                   {formatAmount(limits.dailyCrossBorderSpent)} / {limits.dailyCrossBorderLimit} SOL
                 </span>
@@ -210,13 +184,17 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
               <div className="bg-white/50 dark:bg-stone-900/50 rounded-lg p-3">
                 <p className="text-xs text-stone-600 dark:text-stone-400 mb-1">Remaining</p>
                 <p className="text-lg font-bold text-stone-900 dark:text-stone-50">
-                  {formatAmount(Math.max(0, limits.dailyCrossBorderLimit - limits.dailyCrossBorderSpent))} SOL
+                  {formatAmount(
+                    Math.max(0, limits.dailyCrossBorderLimit - limits.dailyCrossBorderSpent)
+                  )}{' '}
+                  SOL
                 </p>
               </div>
               <div className="bg-white/50 dark:bg-stone-900/50 rounded-lg p-3">
                 <p className="text-xs text-stone-600 dark:text-stone-400 mb-1">Usage</p>
                 <p className="text-lg font-bold text-stone-900 dark:text-stone-50">
-                  {((limits.dailyCrossBorderSpent / limits.dailyCrossBorderLimit) * 100).toFixed(0)}%
+                  {((limits.dailyCrossBorderSpent / limits.dailyCrossBorderLimit) * 100).toFixed(0)}
+                  %
                 </p>
               </div>
             </div>
@@ -263,7 +241,7 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
               </label>
               <select
                 value={selectedType || ''}
-                onChange={e => setSelectedType((e.target.value as TransactionType) || undefined)}
+                onChange={(e) => setSelectedType((e.target.value as TransactionType) || undefined)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-50 text-sm"
               >
                 <option value="">All Types</option>
@@ -278,7 +256,9 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
               </label>
               <select
                 value={selectedStatus || ''}
-                onChange={e => setSelectedStatus((e.target.value as TransactionStatus) || undefined)}
+                onChange={(e) =>
+                  setSelectedStatus((e.target.value as TransactionStatus) || undefined)
+                }
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-50 text-sm"
               >
                 <option value="">All Statuses</option>
@@ -326,11 +306,8 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
-                {transactions.map(tx => (
-                  <tr
-                    key={tx.id}
-                    className="hover:bg-stone-50 dark:hover:bg-stone-900 transition"
-                  >
+                {transactions.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-stone-50 dark:hover:bg-stone-900 transition">
                     <td className="px-4 py-4">
                       <TypeBadge type={tx.type} />
                     </td>
@@ -367,7 +344,9 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
         ) : (
           <div className="text-center py-12 px-4">
             <p className="text-2xl mb-2">📭</p>
-            <p className="text-stone-600 dark:text-stone-400 font-medium mb-1">No transactions yet</p>
+            <p className="text-stone-600 dark:text-stone-400 font-medium mb-1">
+              No transactions yet
+            </p>
             <p className="text-sm text-stone-500 dark:text-stone-500">
               Send your first private payment to see it here
             </p>
@@ -392,9 +371,7 @@ const StatCard: FC<{
   };
 
   return (
-    <div
-      className={`rounded-lg p-4 border ${colorVariants[color]}`}
-    >
+    <div className={`rounded-lg p-4 border ${colorVariants[color]}`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm text-stone-600 dark:text-stone-400">{label}</span>
         <span className="text-xl">{icon}</span>

@@ -3,29 +3,37 @@
 ## 🚀 Routes Available
 
 ### `/dashboard` - Dashboard Page
+
 **Shows**: User profile + transaction overview
+
 - Left sidebar: User wallet info, balance, stats
 - Right section: Quick stats, daily limits, transaction history
 - Features: Sticky profile, filters, export, copy address
 - Design: Professional 3-column layout, responsive
 
 ### `/payments` - Payments Page
+
 **Shows**: Payment form + recent transactions
+
 - Left sticky form: Recipient, amount, payment type
 - Right section: Available balance, recent payments, tips
 - Features: Validation, error messages, success feedback
 - Design: Clean form layout, mobile-friendly
 
 ### `/` - Home Page
+
 **Shows**: Original home landing page with all features
 
 ### `/dev-tools` - Development Tools
+
 **Shows**: Technical debugging and monitoring
 
 ---
 
 ## 🎯 Navigation Bar (Top)
+
 Always visible at the top with:
+
 1. **Logo** - SafeSol with icon
 2. **Navigation Links**:
    - 💳 Send Payment → `/payments`
@@ -38,6 +46,7 @@ Always visible at the top with:
 ## 📊 Data Flow
 
 ### Dashboard Page
+
 ```
 User → Navigate to /dashboard
   ↓
@@ -53,6 +62,7 @@ Check if wallet connected
 ```
 
 ### Payments Page
+
 ```
 User → Navigate to /payments
   ↓
@@ -73,6 +83,7 @@ Check if wallet connected
 ## 🎨 Visual Design
 
 ### Color Scheme
+
 - **Backgrounds**: Stone 50/950 (light/dark)
 - **Cards**: White/Stone-950 (light/dark)
 - **Primary Button**: Blue gradient
@@ -80,11 +91,13 @@ Check if wallet connected
 - **Limit Card**: Blue-to-Purple gradient
 
 ### Responsive Breakpoints
+
 - **Mobile** (< 640px): Single column, stacked layout
 - **Tablet** (640-1024px): Two columns where possible
 - **Desktop** (> 1024px): Three columns, sticky sidebars
 
 ### Key Components
+
 1. **Navigation** - Sticky top, dark theme, smooth scroll
 2. **UserProfile** - Gradient background, stats grid
 3. **TransactionDashboard** - Table view, filters, export
@@ -96,6 +109,7 @@ Check if wallet connected
 ## 💼 Features by Page
 
 ### Dashboard Features
+
 ✅ Live wallet balance (10-second refresh)
 ✅ Copy wallet address to clipboard
 ✅ Total transactions counter
@@ -112,6 +126,7 @@ Check if wallet connected
 ✅ Transaction detail view
 
 ### Payments Features
+
 ✅ Simple payment form
 ✅ Recipient address input
 ✅ Amount input with validation
@@ -131,18 +146,21 @@ Check if wallet connected
 ## 🔐 Integration Points
 
 ### Smart Contract Integration
+
 - Daily limit enforcement (10 SOL/day cross-border)
 - Transaction recording on-chain
 - ZK proof verification
 - Light Protocol compression
 
 ### RPC Integration
+
 - Balance fetching via `connection.getBalance()`
 - Transaction confirmation monitoring
 - Real-time status updates
 - Auto-refresh every 10 seconds
 
 ### LocalStorage Integration
+
 - Transaction history persistence
 - User preferences
 - Connected wallet info
@@ -153,6 +171,7 @@ Check if wallet connected
 ## 📱 Responsive Design Details
 
 ### Mobile (< 640px)
+
 - Single column for all sections
 - Form takes full width
 - Stats in 2-column grid
@@ -160,6 +179,7 @@ Check if wallet connected
 - Text: Smaller sizes (sm:text-sm)
 
 ### Tablet (640-1024px)
+
 - 2-column layout available
 - Form beside transactions
 - Stats: 2 or 3 columns
@@ -167,6 +187,7 @@ Check if wallet connected
 - Text: Medium sizes
 
 ### Desktop (> 1024px)
+
 - 3-column layout (1-2 split)
 - Profile sticky on side
 - Form sticky on side
@@ -179,6 +200,7 @@ Check if wallet connected
 ## 🎓 User Flow Example
 
 ### New User
+
 ```
 1. Land on home page
 2. Click wallet button
@@ -195,6 +217,7 @@ Check if wallet connected
 ```
 
 ### Returning User
+
 ```
 1. Navigate directly to /dashboard
 2. See previous transactions
@@ -209,6 +232,7 @@ Check if wallet connected
 ## ⚡ Performance Notes
 
 ### Optimizations
+
 - Sticky components prevent layout shift
 - Images: None (icon-based design)
 - Lazy loading: Implicit via Next.js
@@ -216,6 +240,7 @@ Check if wallet connected
 - Refresh interval: 10 seconds (configurable)
 
 ### Load Times
+
 - Initial load: ~2-3 seconds
 - Page transitions: < 500ms
 - Dashboard rerender: < 100ms
@@ -226,7 +251,9 @@ Check if wallet connected
 ## 🛠️ Customization Guide
 
 ### To Change Colors
+
 Edit these in component files:
+
 ```tsx
 // Primary gradient
 from-blue-600 to-blue-700
@@ -238,14 +265,18 @@ bg-amber-600 (warning)
 ```
 
 ### To Change Layout
+
 Grid breakpoints:
+
 ```tsx
 grid-cols-1 lg:grid-cols-3
 // Change lg: to md: or sm: for different breakpoint
 ```
 
 ### To Change Refresh Rate
+
 In `useTransactionHistory.ts`:
+
 ```tsx
 const interval = setInterval(fetchBalance, 10000); // 10 seconds
 ```
@@ -255,6 +286,7 @@ const interval = setInterval(fetchBalance, 10000); // 10 seconds
 ## ✅ Quality Assurance
 
 All pages tested for:
+
 - ✅ TypeScript compilation
 - ✅ Mobile responsiveness
 - ✅ Dark mode support
@@ -269,12 +301,14 @@ All pages tested for:
 ## 📞 Support Info
 
 ### Files Modified
+
 - `/app/dashboard/page.tsx` - Dashboard page
 - `/app/payments/page.tsx` - Payments page (NEW)
 - `/components/Navigation.tsx` - Updated route
 - All other components working as-is
 
 ### No Breaking Changes
+
 - Original functionality preserved
 - All Phase 1 features still working
 - Smart contracts unchanged
@@ -282,6 +316,7 @@ All pages tested for:
 - ZK system untouched
 
 ### Ready for Production
+
 - No console errors
 - No TypeScript errors
 - No security issues

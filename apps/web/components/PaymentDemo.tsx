@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
   TransactionVerificationTracker,
-  useVerificationSteps
+  useVerificationSteps,
 } from './TransactionVerificationTracker';
 import { ArrowRight, Shield, Globe, Zap } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export function PaymentDemo() {
       await new Promise((r) => setTimeout(r, 1500));
       updateStep('compression', {
         status: 'complete',
-        data: `Compressed: 32 bytes → 0.16 bytes (99.5% reduction) | Gas savings: 50%`
+        data: `Compressed: 32 bytes → 0.16 bytes (99.5% reduction) | Gas savings: 50%`,
       });
 
       // Step 2: ZK Proof Generation
@@ -41,7 +41,7 @@ export function PaymentDemo() {
       await new Promise((r) => setTimeout(r, 2000));
       updateStep('proof-gen', {
         status: 'complete',
-        data: `Proof: 0x${Math.random().toString(16).substring(2, 18)}... (288 bytes)`
+        data: `Proof: 0x${Math.random().toString(16).substring(2, 18)}... (288 bytes)`,
       });
 
       // Step 3: Merkle Root Verification
@@ -49,7 +49,7 @@ export function PaymentDemo() {
       await new Promise((r) => setTimeout(r, 1500));
       updateStep('merkle-root', {
         status: 'complete',
-        data: `Root: 0x${Math.random().toString(16).substring(2, 18)}... (Compressed)`
+        data: `Root: 0x${Math.random().toString(16).substring(2, 18)}... (Compressed)`,
       });
 
       // Step 4: ZK Proof Verification (Groth16)
@@ -57,7 +57,7 @@ export function PaymentDemo() {
       await new Promise((r) => setTimeout(r, 2000));
       updateStep('zk-verify', {
         status: 'complete',
-        data: 'Groth16 verification passed ✓'
+        data: 'Groth16 verification passed ✓',
       });
 
       // Step 5: Nullifier Check
@@ -65,7 +65,7 @@ export function PaymentDemo() {
       await new Promise((r) => setTimeout(r, 1000));
       updateStep('nullifier', {
         status: 'complete',
-        data: `Nullifier: 0x${Math.random().toString(16).substring(2, 18)}...`
+        data: `Nullifier: 0x${Math.random().toString(16).substring(2, 18)}...`,
       });
 
       // Step 6: Payment Execution
@@ -75,7 +75,7 @@ export function PaymentDemo() {
       setTxSignature(mockTx);
       updateStep('payment', {
         status: 'complete',
-        data: `${amount || '0.1'} SOL transferred to recipient`
+        data: `${amount || '0.1'} SOL transferred to recipient`,
       });
 
       alert(
@@ -94,9 +94,7 @@ export function PaymentDemo() {
       {/* Payment Form */}
       <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-white mb-2">
-            Private Payment Demo
-          </h2>
+          <h2 className="text-3xl font-bold text-white mb-2">Private Payment Demo</h2>
           <p className="text-gray-400">
             Experience zero-knowledge payments with real-time verification tracking
           </p>
@@ -113,11 +111,7 @@ export function PaymentDemo() {
             }`}
           >
             <div className="flex items-center space-x-3">
-              <Zap
-                className={
-                  paymentType === 'domestic' ? 'text-purple-400' : 'text-gray-400'
-                }
-              />
+              <Zap className={paymentType === 'domestic' ? 'text-purple-400' : 'text-gray-400'} />
               <div className="text-left">
                 <h3 className="font-semibold text-white">Domestic Payment</h3>
                 <p className="text-xs text-gray-400">Instant settlement</p>
@@ -135,9 +129,7 @@ export function PaymentDemo() {
           >
             <div className="flex items-center space-x-3">
               <Globe
-                className={
-                  paymentType === 'cross-border' ? 'text-blue-400' : 'text-gray-400'
-                }
+                className={paymentType === 'cross-border' ? 'text-blue-400' : 'text-gray-400'}
               />
               <div className="text-left">
                 <h3 className="font-semibold text-white">Cross-Border</h3>
@@ -164,9 +156,7 @@ export function PaymentDemo() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Amount (SOL)
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Amount (SOL)</label>
             <input
               type="number"
               step="0.01"
@@ -189,7 +179,9 @@ export function PaymentDemo() {
               {isProcessing
                 ? 'Processing...'
                 : connected
-                ? `Send Private ${paymentType === 'cross-border' ? 'Cross-Border' : 'Domestic'} Payment`
+                ? `Send Private ${
+                    paymentType === 'cross-border' ? 'Cross-Border' : 'Domestic'
+                  } Payment`
                 : 'Connect Wallet to Continue'}
             </span>
             {!isProcessing && <ArrowRight className="w-5 h-5" />}
@@ -219,18 +211,13 @@ export function PaymentDemo() {
 
       {/* Verification Tracker */}
       {(isProcessing || steps.some((s) => s.status !== 'pending')) && (
-        <TransactionVerificationTracker
-          steps={steps}
-          transactionSignature={txSignature}
-        />
+        <TransactionVerificationTracker steps={steps} transactionSignature={txSignature} />
       )}
 
       {/* Info Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
-          <h3 className="text-lg font-bold text-white mb-3">
-            🔒 Privacy Guarantees
-          </h3>
+          <h3 className="text-lg font-bold text-white mb-3">🔒 Privacy Guarantees</h3>
           <ul className="space-y-2 text-sm text-gray-400">
             <li>✓ Amount is cryptographically hidden</li>
             <li>✓ Sender identity protected via nullifiers</li>
@@ -240,9 +227,7 @@ export function PaymentDemo() {
         </div>
 
         <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
-          <h3 className="text-lg font-bold text-white mb-3">
-            🌍 Cross-Border Benefits
-          </h3>
+          <h3 className="text-lg font-bold text-white mb-3">🌍 Cross-Border Benefits</h3>
           <ul className="space-y-2 text-sm text-gray-400">
             <li>✓ Instant global settlements</li>
             <li>✓ No intermediary banks required</li>

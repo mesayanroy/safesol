@@ -38,7 +38,7 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
     };
 
     fetchBalance();
-    
+
     // Refresh balance every 10 seconds
     const interval = setInterval(fetchBalance, 10000);
     return () => clearInterval(interval);
@@ -83,7 +83,9 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
         <div className="space-y-4">
           {/* Wallet Address */}
           <div>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">Connected Wallet</p>
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">
+              Connected Wallet
+            </p>
             <div className="flex items-center gap-2">
               <code className="text-sm sm:text-base font-mono bg-stone-100 dark:bg-stone-900 px-3 sm:px-4 py-2 rounded-lg text-stone-900 dark:text-stone-50 flex-1 truncate">
                 {publicKey.toString()}
@@ -103,12 +105,16 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
 
           {/* Balance */}
           <div>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">Available Balance</p>
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">
+              Available Balance
+            </p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
                 {loading ? '...' : balance?.toFixed(4) || '0.00'}
               </span>
-              <span className="text-lg sm:text-xl font-semibold text-stone-600 dark:text-stone-400">SOL</span>
+              <span className="text-lg sm:text-xl font-semibold text-stone-600 dark:text-stone-400">
+                SOL
+              </span>
             </div>
           </div>
 
@@ -128,7 +134,9 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-stone-950 rounded-xl p-4 border border-stone-200 dark:border-stone-800">
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">Total Transactions</p>
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">
+              Total Transactions
+            </p>
             <p className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-50">
               {stats.totalTransactions}
             </p>
@@ -142,7 +150,9 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
           </div>
 
           <div className="bg-white dark:bg-stone-950 rounded-xl p-4 border border-stone-200 dark:border-stone-800">
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">Total Spent</p>
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-2">
+              Total Spent
+            </p>
             <p className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-50">
               {stats.totalSpent.toFixed(2)} SOL
             </p>
@@ -153,7 +163,9 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
       {/* No Stats Message */}
       {!stats && (
         <div className="bg-white dark:bg-stone-950 rounded-xl p-6 border border-stone-200 dark:border-stone-800 text-center">
-          <p className="text-stone-600 dark:text-stone-400">Send your first payment to see statistics</p>
+          <p className="text-stone-600 dark:text-stone-400">
+            Send your first payment to see statistics
+          </p>
         </div>
       )}
     </div>

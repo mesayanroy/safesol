@@ -13,7 +13,9 @@ export function CompressionStats({ stats, isCompressing }: CompressionStatsProps
     return (
       <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
         <h3 className="text-lg font-bold text-white mb-4">Light Protocol Compression</h3>
-        <div className="text-gray-400 text-sm">No compression data yet. Add a commitment to see stats.</div>
+        <div className="text-gray-400 text-sm">
+          No compression data yet. Add a commitment to see stats.
+        </div>
       </div>
     );
   }
@@ -85,7 +87,7 @@ export function CompressionStats({ stats, isCompressing }: CompressionStatsProps
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs text-gray-400">Without Compression</span>
             <span className="text-xs font-mono text-gray-300">
-              {(stats.leafCount * 32 / 1024).toFixed(2)} KB
+              {((stats.leafCount * 32) / 1024).toFixed(2)} KB
             </span>
           </div>
           <div className="w-full h-2 bg-red-500/20 rounded-full overflow-hidden">
@@ -97,9 +99,7 @@ export function CompressionStats({ stats, isCompressing }: CompressionStatsProps
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs text-gray-400">With Light Protocol</span>
-            <span className="text-xs font-mono text-gray-300">
-              {treeSizeKB.toFixed(2)} KB
-            </span>
+            <span className="text-xs font-mono text-gray-300">{treeSizeKB.toFixed(2)} KB</span>
           </div>
           <div className="w-full h-2 bg-green-500/20 rounded-full overflow-hidden">
             <div
@@ -135,10 +135,18 @@ export function CompressionStats({ stats, isCompressing }: CompressionStatsProps
       <div className="mt-4 p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/20">
         <h4 className="text-sm font-semibold text-white mb-2">✨ Light Protocol Benefits</h4>
         <ul className="text-xs text-gray-300 space-y-1">
-          <li>✓ <strong>{compressionRatio}%</strong> smaller on-chain footprint</li>
-          <li>✓ <strong>{gasReduction}%</strong> cheaper transactions</li>
-          <li>✓ <strong>Instant</strong> merkle proof generation</li>
-          <li>✓ <strong>Scalable</strong> to millions of commitments</li>
+          <li>
+            ✓ <strong>{compressionRatio}%</strong> smaller on-chain footprint
+          </li>
+          <li>
+            ✓ <strong>{gasReduction}%</strong> cheaper transactions
+          </li>
+          <li>
+            ✓ <strong>Instant</strong> merkle proof generation
+          </li>
+          <li>
+            ✓ <strong>Scalable</strong> to millions of commitments
+          </li>
         </ul>
       </div>
     </div>

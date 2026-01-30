@@ -137,6 +137,7 @@ User Initiates Payment
 ## 📊 Statistics Cards Grid
 
 ### Mobile (1 column)
+
 ```
 ┌─────────────────────┐
 │ 📊 Total: 5         │
@@ -154,6 +155,7 @@ User Initiates Payment
 ```
 
 ### Tablet (2 columns)
+
 ```
 ┌──────────────┬──────────────┐
 │📊 Total: 5   │ ✓ Confirmed: │
@@ -166,6 +168,7 @@ User Initiates Payment
 ```
 
 ### Desktop (3 columns)
+
 ```
 ┌──────────┬──────────┬──────────┐
 │📊 Total: │✓ Confir: │✗ Failed: │
@@ -181,6 +184,7 @@ User Initiates Payment
 ## 🎨 Color Status Indicators
 
 ### Status Colors
+
 ```
 Pending (⏳)
 Background: #FEF08A (light yellow)
@@ -199,6 +203,7 @@ Icon:       ✗
 ```
 
 ### Type Colors
+
 ```
 Domestic (🏠)
 Background: #DBEAFE (light blue)
@@ -366,7 +371,7 @@ Set transaction:
   - Status = CONFIRMED
   - Green badge
   - Update limit (if cross-border)
-  
+
 • If failed:
   - Status = FAILED
   - Red badge
@@ -474,6 +479,7 @@ Application Running
 ## 🎨 Responsive Breakpoints
 
 ### Mobile (< 640px)
+
 ```
 ┌──────────────────────────────┐
 │   SafeSol Private Payments   │
@@ -497,6 +503,7 @@ Application Running
 ```
 
 ### Tablet (640px - 1024px)
+
 ```
 ┌──────────────────────────────────────────┐
 │   SafeSol | Private Payments             │
@@ -514,6 +521,7 @@ Application Running
 ```
 
 ### Desktop (> 1024px)
+
 ```
 ┌──────────────────────────────────────────────┐
 │ SafeSol           Private Payments           │
@@ -542,7 +550,7 @@ Application Running
 ✅ **Limit Enforcement** - Client + smart contract validation  
 ✅ **Data Persistence** - localStorage + JSON export  
 ✅ **Responsive Design** - Works on all device sizes  
-✅ **Production Ready** - Fully tested and documented  
+✅ **Production Ready** - Fully tested and documented
 
 ---
 

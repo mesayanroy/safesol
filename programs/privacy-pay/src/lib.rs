@@ -17,7 +17,7 @@ pub mod privacy_pay {
     }
 
     /// Execute private payment with ZK proof
-    /// 
+    ///
     /// Verifies:
     /// - ZK proof is valid (via CPI to verifier)
     /// - Nullifier hasn't been used (no double-spend)
@@ -30,14 +30,18 @@ pub mod privacy_pay {
         nullifier_seed: [u8; 32],
         public_signals: Vec<[u8; 32]>,
     ) -> Result<()> {
-        instructions::private_spend(ctx, merkle_root, amount, proof, nullifier_seed, public_signals)
+        instructions::private_spend(
+            ctx,
+            merkle_root,
+            amount,
+            proof,
+            nullifier_seed,
+            public_signals,
+        )
     }
 
     /// Add commitment to state tree (for deposits)
-    pub fn add_commitment(
-        ctx: Context<AddCommitment>,
-        commitment: [u8; 32],
-    ) -> Result<()> {
+    pub fn add_commitment(ctx: Context<AddCommitment>, commitment: [u8; 32]) -> Result<()> {
         instructions::add_commitment(ctx, commitment)
     }
 }

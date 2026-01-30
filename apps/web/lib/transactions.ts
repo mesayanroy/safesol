@@ -94,18 +94,15 @@ export class TransactionManager {
   /**
    * Get transactions filtered by type and status
    */
-  getFilteredTransactions(
-    type?: TransactionType,
-    status?: TransactionStatus
-  ): TransactionRecord[] {
+  getFilteredTransactions(type?: TransactionType, status?: TransactionStatus): TransactionRecord[] {
     let txs = this.getTransactions();
 
     if (type) {
-      txs = txs.filter(t => t.type === type);
+      txs = txs.filter((t) => t.type === type);
     }
 
     if (status) {
-      txs = txs.filter(t => t.status === status);
+      txs = txs.filter((t) => t.status === status);
     }
 
     return txs.sort((a, b) => b.timestamp - a.timestamp);
@@ -121,7 +118,7 @@ export class TransactionManager {
     signature?: string
   ): void {
     const txs = this.getTransactions();
-    const tx = txs.find(t => t.id === txId);
+    const tx = txs.find((t) => t.id === txId);
 
     if (tx) {
       tx.status = status;
@@ -189,7 +186,9 @@ export class TransactionManager {
       const remaining = limits.dailyCrossBorderLimit - limits.dailyCrossBorderSpent;
       return {
         allowed: false,
-        reason: `Daily cross-border limit exceeded. Remaining: ${remaining.toFixed(2)} SOL / ${limits.dailyCrossBorderLimit} SOL`,
+        reason: `Daily cross-border limit exceeded. Remaining: ${remaining.toFixed(2)} SOL / ${
+          limits.dailyCrossBorderLimit
+        } SOL`,
       };
     }
 
@@ -218,17 +217,17 @@ export class TransactionManager {
     const txs = this.getTransactions();
     const now = Date.now();
     const secondsPerDay = 86_400_000;
-    const todayTxs = txs.filter(t => now - t.timestamp < secondsPerDay);
+    const todayTxs = txs.filter((t) => now - t.timestamp < secondsPerDay);
 
     return {
       totalTransactions: todayTxs.length,
-      confirmedTransactions: todayTxs.filter(t => t.status === 'confirmed').length,
-      failedTransactions: todayTxs.filter(t => t.status === 'failed').length,
+      confirmedTransactions: todayTxs.filter((t) => t.status === 'confirmed').length,
+      failedTransactions: todayTxs.filter((t) => t.status === 'failed').length,
       totalSpent: todayTxs
-        .filter(t => t.status === 'confirmed')
+        .filter((t) => t.status === 'confirmed')
         .reduce((sum, t) => sum + t.amount, 0),
-      domesticCount: todayTxs.filter(t => t.type === 'domestic').length,
-      crossBorderCount: todayTxs.filter(t => t.type === 'cross-border').length,
+      domesticCount: todayTxs.filter((t) => t.type === 'domestic').length,
+      crossBorderCount: todayTxs.filter((t) => t.type === 'cross-border').length,
     };
   }
 
@@ -271,7 +270,7 @@ export class TransactionManager {
       }
 
       retries++;
-      await new Promise(resolve => setTimeout(resolve, retryInterval));
+      await new Promise((resolve) => setTimeout(resolve, retryInterval));
     }
 
     this.updateTransactionStatus(txId, 'failed', 'Transaction confirmation timeout');
@@ -307,7 +306,7 @@ export class TransactionManager {
     if (typeof window === 'undefined') return;
 
     const existing = this.getTransactions();
-    const index = existing.findIndex(t => t.id === record.id);
+    const index = existing.findIndex((t) => t.id === record.id);
 
     if (index >= 0) {
       existing[index] = record;
@@ -350,7 +349,7 @@ export async function batchVerifyTransactions(
     const manager = new TransactionManager(connection);
 
     await Promise.all(
-      batch.map(async sig => {
+      batch.map(async (sig) => {
         const isConfirmed = await manager.verifyTransaction(sig);
         results.set(sig, isConfirmed);
       })

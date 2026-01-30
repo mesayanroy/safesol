@@ -19,7 +19,7 @@ interface TransactionVerificationTrackerProps {
 
 export function TransactionVerificationTracker({
   steps,
-  transactionSignature
+  transactionSignature,
 }: TransactionVerificationTrackerProps) {
   return (
     <div className="w-full max-w-3xl mx-auto bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
@@ -53,18 +53,12 @@ export function TransactionVerificationTracker({
           >
             {/* Status Icon */}
             <div className="flex-shrink-0 mt-1">
-              {step.status === 'complete' && (
-                <CheckCircle2 className="w-6 h-6 text-green-400" />
-              )}
+              {step.status === 'complete' && <CheckCircle2 className="w-6 h-6 text-green-400" />}
               {step.status === 'processing' && (
                 <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
               )}
-              {step.status === 'pending' && (
-                <Clock className="w-6 h-6 text-gray-400" />
-              )}
-              {step.status === 'error' && (
-                <AlertCircle className="w-6 h-6 text-red-400" />
-              )}
+              {step.status === 'pending' && <Clock className="w-6 h-6 text-gray-400" />}
+              {step.status === 'error' && <AlertCircle className="w-6 h-6 text-red-400" />}
             </div>
 
             {/* Step Content */}
@@ -107,9 +101,7 @@ export function TransactionVerificationTracker({
             {index < steps.length - 1 && (
               <div
                 className={`absolute left-7 top-14 w-0.5 h-8 ${
-                  step.status === 'complete'
-                    ? 'bg-green-500/30'
-                    : 'bg-gray-500/20'
+                  step.status === 'complete' ? 'bg-green-500/30' : 'bg-gray-500/20'
                 }`}
               />
             )}
@@ -157,47 +149,43 @@ export function useVerificationSteps() {
       id: 'compression',
       label: 'Merkle Tree Compression',
       description: 'Compressing commitment in Light Protocol (99.5% smaller)',
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'proof-gen',
       label: 'ZK Proof Generation',
       description: 'Generating zero-knowledge proof client-side (288 bytes)',
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'merkle-root',
       label: 'Merkle Root Verification',
       description: 'Verifying commitment exists in compressed tree',
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'zk-verify',
       label: 'ZK Proof Verification',
       description: 'On-chain Groth16 proof validation',
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'nullifier',
       label: 'Nullifier Check',
       description: 'Preventing double-spend attack',
-      status: 'pending'
+      status: 'pending',
     },
     {
       id: 'payment',
       label: 'Payment Execution',
       description: 'Transferring SOL to recipient',
-      status: 'pending'
-    }
+      status: 'pending',
+    },
   ]);
 
   const updateStep = (id: string, updates: Partial<VerificationStep>) => {
     setSteps((prev) =>
-      prev.map((step) =>
-        step.id === id
-          ? { ...step, ...updates, timestamp: Date.now() }
-          : step
-      )
+      prev.map((step) => (step.id === id ? { ...step, ...updates, timestamp: Date.now() } : step))
     );
   };
 

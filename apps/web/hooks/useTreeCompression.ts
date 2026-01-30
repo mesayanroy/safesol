@@ -13,7 +13,7 @@ export interface CompressionState {
 
 /**
  * Hook for managing Light Protocol tree compression
- * 
+ *
  * Tracks:
  * - Real-time merkle tree state
  * - Compression statistics
@@ -131,7 +131,10 @@ export function formatCompressionMetrics(stats: TreeStats | null) {
 /**
  * Calculate storage savings from compression
  */
-export function calculateStorageSavings(leafCount: number, treeDepth: number = 20): {
+export function calculateStorageSavings(
+  leafCount: number,
+  treeDepth: number = 20
+): {
   uncompressed: number;
   compressed: number;
   saved: number;
