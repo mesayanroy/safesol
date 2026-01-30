@@ -90,9 +90,19 @@ export function useTransactionHistory() {
 
   // Update transaction status
   const updateStatus = useCallback(
-    (txId: string, status: TransactionStatus, errorMessage?: string) => {
+    (txId: string, status: TransactionStatus, signatureOrError?: string) => {
       if (!manager) return;
-      manager.updateTransactionStatus(txId, status, errorMessage);
+      
+      // If status is confirmed, the third param is signature
+      // If status is failed, the third param is error message
+      if (status === 'confirmed') {
+        manager.updateTransactionStatus(txId, status, undefined, signatureOrError);
+      } else if (status === 'failed') {
+        manager.updateTransactionStatus(txId, status, signatureOrError);
+      } else {
+        manager.updateTransactionStatus(txId, status);
+      }
+      
       refresh();
     },
     [manager, refresh]

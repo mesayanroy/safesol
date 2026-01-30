@@ -117,7 +117,8 @@ export class TransactionManager {
   updateTransactionStatus(
     txId: string,
     status: TransactionStatus,
-    errorMessage?: string
+    errorMessage?: string,
+    signature?: string
   ): void {
     const txs = this.getTransactions();
     const tx = txs.find(t => t.id === txId);
@@ -125,6 +126,7 @@ export class TransactionManager {
     if (tx) {
       tx.status = status;
       if (errorMessage) tx.errorMessage = errorMessage;
+      if (signature) tx.signature = signature;
 
       // Update daily limits if status changed to confirmed
       if (status === 'confirmed' && tx.type === 'cross-border') {
