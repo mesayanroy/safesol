@@ -142,17 +142,17 @@ export function useTransactionHistory() {
 
       // If status is confirmed, the third param is signature
       // If status is failed, the third param is error message
-        // If status is pending, the third param could be signature (for updating pending tx with signature)
+      // If status is pending, the third param could be signature (for updating pending tx with signature)
       if (status === 'confirmed') {
         manager.updateTransactionStatus(txId, status, undefined, signatureOrError);
       } else if (status === 'failed') {
         manager.updateTransactionStatus(txId, status, signatureOrError);
-        } else if (status === 'pending' && signatureOrError) {
-          // Update pending transaction with signature, then start monitoring
-          manager.updateTransactionStatus(txId, status, undefined, signatureOrError);
-          manager.monitorTransaction(signatureOrError, txId).then(() => {
-            refresh();
-          });
+      } else if (status === 'pending' && signatureOrError) {
+        // Update pending transaction with signature, then start monitoring
+        manager.updateTransactionStatus(txId, status, undefined, signatureOrError);
+        manager.monitorTransaction(signatureOrError, txId).then(() => {
+          refresh();
+        });
       } else {
         manager.updateTransactionStatus(txId, status);
       }

@@ -13,7 +13,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafaf9' },
+    { media: '(prefers-color-scheme: light)', color: '#0c0a09' },
     { media: '(prefers-color-scheme: dark)', color: '#0c0a09' },
   ],
 };
@@ -56,10 +56,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.className} bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-50`}
-      >
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-stone-950 text-stone-50`}>
         <WalletProvider>
           <Navigation />
           {children}

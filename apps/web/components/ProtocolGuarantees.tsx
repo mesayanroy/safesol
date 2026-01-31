@@ -122,7 +122,9 @@ const GuaranteeCard: FC<{ item: GuaranteeItem }> = ({ item }) => {
             <h4 className={`font-semibold ${config.textColor} text-sm sm:text-base`}>
               {item.title}
             </h4>
-            <span className={`${config.badgeColor} px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap`}>
+            <span
+              className={`${config.badgeColor} px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap`}
+            >
               {config.emoji}
             </span>
           </div>
@@ -153,7 +155,9 @@ export const ProtocolGuarantees: FC = () => {
             <div>
               <h3 className="font-bold text-sm sm:text-base">Protocol Guarantees</h3>
               <p className="text-xs opacity-90">
-                {isExpanded ? 'Hide details' : 'Click to view cryptographic & blockchain guarantees'}
+                {isExpanded
+                  ? 'Hide details'
+                  : 'Click to view cryptographic & blockchain guarantees'}
               </p>
             </div>
           </div>
@@ -219,9 +223,9 @@ export const ProtocolGuarantees: FC = () => {
               🔍 Key Insight
             </h5>
             <p className="text-amber-800 dark:text-amber-200 text-xs sm:text-sm">
-              All cryptographic constraints are embedded in the ZK proof. Solana consensus ensures on-chain state
-              consistency. Together, they prevent fraud, double-spending, and unauthorized transfers without exposing
-              transaction amounts or identities.
+              All cryptographic constraints are embedded in the ZK proof. Solana consensus ensures
+              on-chain state consistency. Together, they prevent fraud, double-spending, and
+              unauthorized transfers without exposing transaction amounts or identities.
             </p>
           </div>
 

@@ -4,15 +4,11 @@
 
 /* Clean, minimal design system matching Reclaim Protocol */
 :root {
-  color-scheme: light dark;
-  --foreground: 7, 5, 1; /* stone-950 */
-  --background: 250, 250, 249; /* stone-50 */
+  color-scheme: light dark; /* white */ /* black */
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground: 250, 250, 249; /* stone-50 */
-    --background: 7, 5, 1; /* stone-950 */
+  :root { /* white */ /* black */
   }
 }
 
@@ -21,79 +17,12 @@ html {
 }
 
 body {
-  @apply bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-50 transition-colors duration-200;
-}
-
-/* Smooth scroll animations */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Enhanced text styling */
-@layer components {
-  .heading-xl {
-    @apply text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent;
-  }
-
-  .heading-lg {
-    @apply text-3xl font-bold text-white;
-  }
-
-  .heading-md {
-    @apply text-2xl font-bold text-white;
-  }
-
-  .text-muted {
-    @apply text-slate-400 text-sm;
-  }
-
-  .text-label {
-    @apply text-slate-300 text-sm font-medium;
-  }
-
-  .card-elevated {
-    @apply bg-slate-800/50 border border-slate-700/50 rounded-lg backdrop-blur-sm hover:border-slate-600 transition-all duration-300;
-  }
-
-  .button-primary {
-    @apply bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg px-6 py-2 transition-all duration-300 shadow-lg hover:shadow-blue-500/30;
-  }
-
-  .button-secondary {
-    @apply bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium rounded-lg px-6 py-2 transition-all duration-300;
-  }
+  @apply bg-stone-950 text-stone-50 transition-colors duration-200;
 }
 
 /* Wallet Adapter Styling - Professional minimal */
 .wallet-adapter-button {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-4 py-2 transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-blue-500/30;
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-4 py-2 transition-colors duration-200;
 }
 
 .wallet-adapter-button:hover {
@@ -106,11 +35,11 @@ body {
 
 /* Dropdown styling */
 .wallet-adapter-dropdown-list {
-  @apply bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl shadow-lg;
+  @apply bg-black border border-stone-800 rounded-xl shadow-lg;
 }
 
 .wallet-adapter-dropdown-list-item {
-  @apply px-4 py-2 hover:bg-stone-100 dark:hover:bg-stone-900 text-stone-900 dark:text-stone-50 border-b border-stone-100 dark:border-stone-900;
+  @apply px-4 py-2 hover:bg-stone-900 text-white border-b border-stone-900;
 }
 
 .wallet-adapter-dropdown-list-item:last-child {
@@ -119,7 +48,7 @@ body {
 
 /* Modal styling */
 .wallet-adapter-modal {
-  @apply bg-white dark:bg-stone-950;
+  @apply bg-black;
 }
 
 .wallet-adapter-modal-overlay {
@@ -147,7 +76,7 @@ button:focus-visible {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-stone-100 dark:bg-stone-900;
+  @apply bg-stone-900;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -157,4 +86,69 @@ button:focus-visible {
 /* Links */
 a {
   @apply text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

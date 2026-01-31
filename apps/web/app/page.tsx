@@ -404,11 +404,11 @@ export default function Home() {
       let tx;
       try {
         console.log('[App] Serializing proof for Solana...');
-        
+
         // Serialize proof and capture bytes for receipt
         proofBytes = serializeProofForSolana(proof);
         console.log('[App] ✓ Proof serialized:', proofBytes.length, 'bytes');
-        
+
         tx = await buildPrivatePaymentTx(provider, {
           proof,
           amount: new BN(Math.floor(amount * 1e9)),
@@ -562,8 +562,8 @@ export default function Home() {
 
       // Step 8: Confirm transaction (run in background, don't block UI)
       updateStep('confirm', 'active');
-        console.log('[App] Step 8: Confirming transaction on-chain...');
-        console.log('[App] ⏳ Checking confirmation status (this may take a few seconds)...');
+      console.log('[App] Step 8: Confirming transaction on-chain...');
+      console.log('[App] ⏳ Checking confirmation status (this may take a few seconds)...');
       console.log('[App] Signature to confirm:', signature);
 
       // Don't await - let confirmation happen in background
@@ -623,7 +623,11 @@ export default function Home() {
                   if (txId) {
                     updateStatus(txId, 'failed', `On-chain error: ${JSON.stringify(status.err)}`);
                   }
-                  updateStatusBySignature(signature, 'failed', `On-chain error: ${JSON.stringify(status.err)}`);
+                  updateStatusBySignature(
+                    signature,
+                    'failed',
+                    `On-chain error: ${JSON.stringify(status.err)}`
+                  );
                 } else {
                   updateStep('confirm', 'complete', undefined, '✓ Confirmed on Solana');
 
@@ -633,24 +637,25 @@ export default function Home() {
                     updateStatus(txId, 'confirmed', signature);
                   }
                   updateStatusBySignature(signature, 'confirmed');
-                  
+
                   // Fetch transaction details for receipt
                   try {
                     const txDetails = await connection.getTransaction(signature, {
                       maxSupportedTransactionVersion: 0,
                     });
-                    
+
                     const blockTime = txDetails?.blockTime || undefined;
                     console.log('[App] Transaction block time:', blockTime);
-                    
+
                     // Generate privacy receipt
-                    const network = process.env.NEXT_PUBLIC_RPC_ENDPOINT?.includes('devnet') 
-                      ? 'devnet' 
+                    const network = process.env.NEXT_PUBLIC_RPC_ENDPOINT?.includes('devnet')
+                      ? 'devnet'
                       : 'mainnet-beta';
-                    const proofType = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROOFS === 'true' 
-                      ? 'Mock' as const
-                      : 'Groth16' as const;
-                    
+                    const proofType =
+                      process.env.NEXT_PUBLIC_ENABLE_MOCK_PROOFS === 'true'
+                        ? ('Mock' as const)
+                        : ('Groth16' as const);
+
                     const receipt = TransactionManager.createReceipt(
                       signature,
                       currentRoot,
@@ -660,7 +665,7 @@ export default function Home() {
                       proofType,
                       blockTime
                     );
-                    
+
                     // Attach receipt to transaction
                     const txId = currentTxIdRef.current;
                     if (txId) {
@@ -684,7 +689,7 @@ export default function Home() {
             console.log('[App] ℹ Transaction confirmation timed out - may still be processing');
             console.log('[App] ℹ Check explorer for current status:', getExplorerUrl(signature));
             updateStep('confirm', 'complete', undefined, '✓ Sent (check explorer)');
-            
+
             // Note: We don't mark as failed - transaction might still confirm later
             // The monitorTransaction background task will update status when confirmed
           }
@@ -802,6 +807,7 @@ export default function Home() {
 
             <div className="text-center">
               <button
+                id="launch-app"
                 onClick={() => setShowApp(true)}
                 className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors inline-block text-sm sm:text-base"
               >

@@ -42,7 +42,7 @@ const StatusBadge: FC<{ status: TransactionStatus }> = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${variants[status]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${variants[status]}`}
     >
       <span>{icons[status]}</span>
       <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
@@ -63,7 +63,7 @@ const TypeBadge: FC<{ type: TransactionType }> = ({ type }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${variants[type]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${variants[type]}`}
     >
       <span>{icons[type]}</span>
       <span>{type === 'domestic' ? 'Domestic' : 'Cross-Border'}</span>
@@ -142,7 +142,7 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
-          <StatCard label="Total Transactions" value={stats.totalTransactions} icon="📊" />
+          <StatCard label="Total Transactions" value={stats.totalTransactions} icon="" />
           <StatCard label="Confirmed" value={stats.confirmedTransactions} icon="✓" color="green" />
           <StatCard label="Failed" value={stats.failedTransactions} icon="✗" color="red" />
           <StatCard label="Total Spent" value={`${formatAmount(stats.totalSpent)} SOL`} icon="💰" />
@@ -284,25 +284,25 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
       <div className="bg-white dark:bg-stone-950 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
         {transactions.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead className="bg-stone-50 dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
+                  <th className="px-3 py-2 text-left font-semibold text-stone-900 dark:text-stone-50 text-[10px]">
                     Type
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
+                  <th className="px-3 py-2 text-left font-semibold text-stone-900 dark:text-stone-50 text-[10px]">
                     Amount
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
+                  <th className="px-3 py-2 text-left font-semibold text-stone-900 dark:text-stone-50 text-[10px]">
                     Recipient
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
+                  <th className="px-3 py-2 text-left font-semibold text-stone-900 dark:text-stone-50 text-[10px]">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
+                  <th className="px-3 py-2 text-left font-semibold text-stone-900 dark:text-stone-50 text-[10px]">
                     Time
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-stone-900 dark:text-stone-50">
+                  <th className="px-3 py-2 text-left font-semibold text-stone-900 dark:text-stone-50 text-[10px]">
                     Actions
                   </th>
                 </tr>
@@ -310,41 +310,41 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
               <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                 {transactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-stone-50 dark:hover:bg-stone-900 transition">
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3">
                       <TypeBadge type={tx.type} />
                     </td>
-                    <td className="px-4 py-4">
-                      <span className="font-semibold text-stone-900 dark:text-stone-50">
+                    <td className="px-3 py-3">
+                      <span className="font-semibold text-stone-900 dark:text-stone-50 text-xs">
                         {formatAmount(tx.amount)} SOL
                       </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <code className="text-xs font-mono text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded">
+                    <td className="px-3 py-3">
+                      <code className="text-[10px] font-mono text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-1.5 py-0.5 rounded">
                         {formatAddress(tx.recipient)}
                       </code>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3">
                       <StatusBadge status={tx.status} />
                     </td>
-                    <td className="px-4 py-4 text-xs text-stone-600 dark:text-stone-400">
+                    <td className="px-3 py-3 text-[10px] text-stone-600 dark:text-stone-400">
                       {formatDate(tx.timestamp)}
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => copyToClipboard(tx.signature, tx.id)}
-                          className="p-1.5 rounded hover:bg-stone-100 dark:hover:bg-stone-800 transition"
+                          className="p-1 rounded hover:bg-stone-100 dark:hover:bg-stone-800 transition"
                           title="Copy signature"
                         >
-                          <Copy className="w-4 h-4 text-stone-500 dark:text-stone-400" />
+                          <Copy className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                         </button>
                         {tx.status === 'confirmed' && tx.receipt && (
                           <button
                             onClick={() => setSelectedReceipt(tx)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-medium transition shadow-sm"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-[10px] font-medium transition shadow-sm"
                             title="View Privacy Receipt"
                           >
-                            <FileText className="w-3.5 h-3.5" />
+                            <FileText className="w-3 h-3" />
                             <span>Receipt</span>
                           </button>
                         )}
@@ -357,11 +357,11 @@ const TransactionDashboard: FC<TransactionDashboardProps> = ({
           </div>
         ) : (
           <div className="text-center py-12 px-4">
-            <p className="text-2xl mb-2">📭</p>
-            <p className="text-stone-600 dark:text-stone-400 font-medium mb-1">
+            <p className="text-xl mb-2">📭</p>
+            <p className="text-stone-600 dark:text-stone-400 font-medium mb-1 text-sm">
               No transactions yet
             </p>
-            <p className="text-sm text-stone-500 dark:text-stone-500">
+            <p className="text-xs text-stone-500 dark:text-stone-500">
               Send your first private payment to see it here
             </p>
           </div>
@@ -393,12 +393,12 @@ const StatCard: FC<{
   };
 
   return (
-    <div className={`rounded-lg p-4 border ${colorVariants[color]}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-stone-600 dark:text-stone-400">{label}</span>
-        <span className="text-xl">{icon}</span>
+    <div className={`rounded-lg p-3 border ${colorVariants[color]}`}>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[10px] text-stone-600 dark:text-stone-400">{label}</span>
+        <span className="text-base">{icon}</span>
       </div>
-      <p className="text-2xl font-bold text-stone-900 dark:text-stone-50">{value}</p>
+      <p className="text-lg font-bold text-stone-900 dark:text-stone-50">{value}</p>
     </div>
   );
 };

@@ -317,8 +317,8 @@ export class TransactionManager {
       const statuses = await this.connection.getSignatureStatuses([signature], {
         searchTransactionHistory: true,
       });
-        const status = statuses.value[0];
-      
+      const status = statuses.value[0];
+
       if (!status) {
         // Fallback: check if transaction exists on-chain
         const tx = await this.connection.getTransaction(signature, {
@@ -328,13 +328,13 @@ export class TransactionManager {
         return Boolean(tx);
       }
 
-        const isConfirmed =
-          status.confirmationStatus === 'processed' ||
-          status.confirmationStatus === 'confirmed' ||
-          status.confirmationStatus === 'finalized' ||
-          (status.confirmationStatus === null && status.confirmations === null);
+      const isConfirmed =
+        status.confirmationStatus === 'processed' ||
+        status.confirmationStatus === 'confirmed' ||
+        status.confirmationStatus === 'finalized' ||
+        (status.confirmationStatus === null && status.confirmations === null);
 
-        return isConfirmed && !status.err;
+      return isConfirmed && !status.err;
     } catch (error) {
       console.error('Error verifying transaction:', error);
       return false;

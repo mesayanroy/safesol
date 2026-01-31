@@ -17,11 +17,11 @@ export default function DashboardPage() {
       <main className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center py-20">
-            <p className="text-4xl mb-4">🔓</p>
-            <h1 className="text-3xl sm:text-4xl font-bold text-stone-900 dark:text-stone-50 mb-4">
+            <p className="text-3xl mb-4">🔓</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-50 mb-4">
               Access Dashboard
             </h1>
-            <p className="text-stone-600 dark:text-stone-400 mb-8 max-w-2xl mx-auto">
+            <p className="text-sm text-stone-600 dark:text-stone-400 mb-8 max-w-2xl mx-auto">
               Connect your Solana wallet to view your profile, transactions, and payment history
             </p>
             <button
@@ -44,10 +44,10 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-900 dark:text-stone-50 mb-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-stone-900 dark:text-stone-50 mb-2">
             Dashboard
           </h1>
-          <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm">
+          <p className="text-stone-600 dark:text-stone-400 text-xs">
             View your profile, transaction history, and payment details
           </p>
         </div>
@@ -99,20 +99,20 @@ export default function DashboardPage() {
               {limits && (
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 rounded-2xl p-4 sm:p-6 text-white shadow-lg">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-base sm:text-lg font-bold">Daily Cross-Border Limit</h3>
-                    <span className="text-2xl">🌍</span>
+                    <h3 className="text-sm sm:text-base font-bold">Daily Cross-Border Limit</h3>
+                    <span className="text-xl">🌍</span>
                   </div>
 
                   <div className="space-y-2">
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs opacity-90">Spent Today</span>
-                        <span className="text-xs font-semibold">
+                        <span className="text-[10px] opacity-90">Spent Today</span>
+                        <span className="text-[10px] font-semibold">
                           {limits.dailyCrossBorderSpent.toFixed(2)} / {limits.dailyCrossBorderLimit}{' '}
                           SOL
                         </span>
                       </div>
-                      <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-white/20 rounded-full h-2.5 overflow-hidden">
                         <div
                           className="bg-white h-full transition-all duration-300"
                           style={{
@@ -127,8 +127,8 @@ export default function DashboardPage() {
 
                     <div className="grid grid-cols-2 gap-2 pt-1.5">
                       <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                        <p className="text-xs opacity-75">Remaining</p>
-                        <p className="text-base font-bold">
+                        <p className="text-[10px] opacity-75">Remaining</p>
+                        <p className="text-sm font-bold">
                           {Math.max(
                             0,
                             limits.dailyCrossBorderLimit - limits.dailyCrossBorderSpent
@@ -137,8 +137,8 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                        <p className="text-xs opacity-75">Usage</p>
-                        <p className="text-base font-bold">
+                        <p className="text-[10px] opacity-75">Usage</p>
+                        <p className="text-sm font-bold">
                           {(
                             (limits.dailyCrossBorderSpent / limits.dailyCrossBorderLimit) *
                             100
@@ -153,7 +153,7 @@ export default function DashboardPage() {
 
               {/* Transactions Dashboard */}
               <div className="bg-white dark:bg-stone-950 rounded-2xl p-4 sm:p-6 border border-stone-200 dark:border-stone-800 shadow-sm">
-                <h2 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-50 mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-50 mb-4">
                   Transaction History
                 </h2>
                 <TransactionDashboard
@@ -172,10 +172,10 @@ export default function DashboardPage() {
 
         {/* Info Banner */}
         <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:p-4">
-          <h3 className="text-sm sm:text-base font-bold text-blue-900 dark:text-blue-100 mb-1.5">
+          <h3 className="text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-100 mb-1.5">
             💡 Dashboard Tips
           </h3>
-          <ul className="space-y-1 text-xs text-blue-800 dark:text-blue-200">
+          <ul className="space-y-1 text-[10px] sm:text-xs text-blue-800 dark:text-blue-200">
             <li>• Your profile updates automatically with wallet balance and transaction stats</li>
             <li>• Cross-border limit resets every 24 hours automatically</li>
             <li>• Use filters to organize transactions by type and status</li>
@@ -212,13 +212,13 @@ function StatCard({
 
   return (
     <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-xl p-3 border`}>
-      <p className="text-xs opacity-75 mb-1">{label}</p>
+      <p className="text-[10px] opacity-75 mb-1">{label}</p>
       <div className="flex items-center justify-between">
-        <p className="text-xl sm:text-2xl font-bold">
+        <p className="text-lg sm:text-xl font-bold">
           {value}
           {isSol ? ' SOL' : ''}
         </p>
-        <p className="text-lg">{icon}</p>
+        <p className="text-base">{icon}</p>
       </div>
     </div>
   );
