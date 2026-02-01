@@ -1,5 +1,10 @@
 # 🔒 SafeSol - Privacy Payment Protocol on Solana
 
+Explaination video-
+https://www.loom.com/share/0fd37eaa7bee4cbcaa2ea5564c112885
+<img width="1917" height="984" alt="Screenshot 2026-02-01 214430" src="https://github.com/user-attachments/assets/ebd2f502-1091-46ef-8e30-53732dd622c4" />
+
+
 **Production-grade zero-knowledge payment system with Groth16 proofs, Light Protocol compression, and 6-layer security**
 
 [![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana)](https://solana.com)
