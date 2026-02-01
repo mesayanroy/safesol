@@ -29,7 +29,7 @@ SafeSol achieves what was previously thought impossible on Solana: **Ethereum-le
 - Transaction fee: **~$0.0094** (0.00008 SOL)
 - Success rate: **100%** (fits within default 200k CU limit)
 
-### 🎯 **What This Is**
+### 🎯 **What it Claims**
 
 A fully **production-ready** zero-knowledge payment system on Solana that:
 
