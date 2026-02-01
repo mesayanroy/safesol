@@ -59,7 +59,9 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
       <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-900 dark:to-stone-950 rounded-2xl p-6 sm:p-8 border border-stone-200 dark:border-stone-800 shadow-sm">
         <div className="text-center py-8">
           <p className="text-xl mb-4">👤</p>
-          <p className="text-stone-600 dark:text-stone-400 font-medium text-sm">No Wallet Connected</p>
+          <p className="text-stone-600 dark:text-stone-400 font-medium text-sm">
+            No Wallet Connected
+          </p>
           <p className="text-stone-500 dark:text-stone-500 text-xs mt-2">
             Connect your wallet to see profile details
           </p>
@@ -143,7 +145,9 @@ const UserProfile: FC<UserProfileProps> = ({ stats }) => {
           </div>
 
           <div className="bg-white dark:bg-stone-950 rounded-xl p-4 border border-stone-200 dark:border-stone-800">
-            <p className="text-[10px] sm:text-xs text-stone-600 dark:text-stone-400 mb-2">Confirmed</p>
+            <p className="text-[10px] sm:text-xs text-stone-600 dark:text-stone-400 mb-2">
+              Confirmed
+            </p>
             <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
               {stats.confirmedTransactions}
             </p>

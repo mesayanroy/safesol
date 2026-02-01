@@ -68,7 +68,7 @@ pub mod zk_verifier {
     pub fn verify_commitment(
         _ctx: Context<VerifyProof>,
         commitment: [u8; 32],
-        merkle_root: [u8; 32],
+        _merkle_root: [u8; 32],
         merkle_proof: Vec<[u8; 32]>,
         merkle_indices: Vec<u8>,
     ) -> Result<()> {

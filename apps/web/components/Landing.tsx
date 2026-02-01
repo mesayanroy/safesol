@@ -15,7 +15,6 @@ export const LandingHero: FC = () => (
         containerClassName="w-full h-full"
         particleCount={500}
         baseHue={210}
-        rangeHue={60}
         baseSpeed={0.2}
         rangeSpeed={1}
         baseRadius={0.5}
@@ -87,10 +86,7 @@ export const LandingHero: FC = () => (
 );
 
 export const HowItWorks: FC = () => (
-  <div
-    id="how-it-works"
-    className="py-24 bg-stone-950 border-y border-stone-800"
-  >
+  <div id="how-it-works" className="py-24 bg-stone-950 border-y border-stone-800">
     <div className="max-w-5xl mx-auto px-4">
       <h2 className="text-4xl font-bold text-stone-900 dark:text-stone-50 text-center mb-4">
         How It Works
@@ -106,16 +102,12 @@ export const HowItWorks: FC = () => (
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-white font-bold text-lg">
             1
           </div>
-          <h3 className="text-lg font-semibold text-stone-50">
-            Off-Chain Proof
-          </h3>
+          <h3 className="text-lg font-semibold text-stone-50">Off-Chain Proof</h3>
           <p className="text-sm text-stone-400">
             Your wallet generates a ZK proof that proves you can afford the payment—without
             revealing the amount.
           </p>
-          <p className="text-xs text-stone-500 italic">
-            Amount never leaves your device
-          </p>
+          <p className="text-xs text-stone-500 italic">Amount never leaves your device</p>
         </div>
 
         {/* Step 2 */}
@@ -123,16 +115,12 @@ export const HowItWorks: FC = () => (
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-white font-bold text-lg">
             2
           </div>
-          <h3 className="text-lg font-semibold text-stone-50">
-            On-Chain Verification
-          </h3>
+          <h3 className="text-lg font-semibold text-stone-50">On-Chain Verification</h3>
           <p className="text-sm text-stone-400">
             Solana validators verify your cryptographic proof and prevent double-spending via
             nullifiers.
           </p>
-          <p className="text-xs text-stone-500 italic">
-            Proof is verified, then discarded
-          </p>
+          <p className="text-xs text-stone-500 italic">Proof is verified, then discarded</p>
         </div>
 
         {/* Step 3 */}
@@ -140,16 +128,12 @@ export const HowItWorks: FC = () => (
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 text-white font-bold text-lg">
             3
           </div>
-          <h3 className="text-lg font-semibold text-stone-50">
-            Private on Explorer
-          </h3>
+          <h3 className="text-lg font-semibold text-stone-50">Private on Explorer</h3>
           <p className="text-sm text-stone-400">
             The blockchain shows only the transaction hash and Merkle root. Amount and recipient
             remain encrypted.
           </p>
-          <p className="text-xs text-stone-500 italic">
-            Only you can see details
-          </p>
+          <p className="text-xs text-stone-500 italic">Only you can see details</p>
         </div>
       </div>
 

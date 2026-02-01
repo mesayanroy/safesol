@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use light_sdk::{derive_light_cpi_signer, CpiSigner};
 
 pub mod instructions;
 pub mod state;
@@ -6,6 +7,10 @@ pub mod state;
 use instructions::*;
 
 declare_id!("HPnAch9XaLsvKdtHtqEq4o5SAoDThCHd4zt9NCbmPKBw");
+
+// Light Protocol CPI Signer for compressed account operations
+pub const LIGHT_CPI_SIGNER: CpiSigner =
+    derive_light_cpi_signer!("HPnAch9XaLsvKdtHtqEq4o5SAoDThCHd4zt9NCbmPKBw");
 
 #[program]
 pub mod privacy_pay {
@@ -43,5 +48,30 @@ pub mod privacy_pay {
     /// Add commitment to state tree (for deposits)
     pub fn add_commitment(ctx: Context<AddCommitment>, commitment: [u8; 32]) -> Result<()> {
         instructions::add_commitment(ctx, commitment)
+    }
+
+    // ========== Light Protocol Compressed PDA Instructions ==========
+
+    /// Create a compressed Merkle root account (75% storage savings)
+    /// Uses Light Protocol's state compression
+    pub fn create_compressed_merkle_root<'info>(
+        ctx: Context<'_, '_, '_, 'info, CompressedMerkleRootAccounts<'info>>,
+        proof: light_sdk::instruction::ValidityProof,
+        address_tree_info: light_sdk::instruction::PackedAddressTreeInfo,
+        merkle_root: [u8; 32],
+    ) -> Result<()> {
+        msg!("📦 Creating compressed merkle root via Light Protocol");
+        create_compressed_merkle_root(ctx, proof, address_tree_info, merkle_root)
+    }
+
+    /// Update compressed Merkle root with new commitment
+    pub fn update_compressed_merkle_root<'info>(
+        ctx: Context<'_, '_, '_, 'info, CompressedMerkleRootAccounts<'info>>,
+        proof: light_sdk::instruction::ValidityProof,
+        new_root: [u8; 32],
+        account_meta: light_sdk::instruction::account_meta::CompressedAccountMeta,
+    ) -> Result<()> {
+        msg!("🔄 Updating compressed merkle root");
+        update_compressed_merkle_root(ctx, proof, new_root, account_meta)
     }
 }

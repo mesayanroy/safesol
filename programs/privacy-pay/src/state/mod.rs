@@ -3,6 +3,9 @@ use anchor_lang::prelude::*;
 pub mod transaction_limits;
 pub use transaction_limits::*;
 
+pub mod compressed;
+pub use compressed::*;
+
 /// Main state account holding Merkle root
 #[account]
 pub struct State {

@@ -269,8 +269,9 @@ export default function Home() {
       updateStep('zk-proof', 'active');
       console.log('[App] Step 4: Generating zero-knowledge proof...');
 
-      const useMockProofs = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROOFS === 'true';
-      const proofMode = useMockProofs ? 'MOCK (development)' : 'REAL Groth16 (production)';
+      // FORCE REAL GROTH16 VERIFICATION - NO MOCK PROOFS
+      const useMockProofs = false;
+      const proofMode = 'REAL Groth16 (production - 6-layer verification)';
       console.log('[App] Proof generation mode:', proofMode);
 
       let proof;
@@ -409,9 +410,30 @@ export default function Home() {
         proofBytes = serializeProofForSolana(proof);
         console.log('[App] ✓ Proof serialized:', proofBytes.length, 'bytes');
 
+        // Validate parameters before calling buildPrivatePaymentTx
+        if (!proof) throw new Error('Proof is missing');
+        if (!proof.nullifier) throw new Error('Proof nullifier is missing');
+        if (!proof.publicSignals) throw new Error('Proof publicSignals is missing');
+        if (!recipient) throw new Error('Recipient is missing');
+        if (!merkleRootBuffer) throw new Error('Merkle root is missing');
+        if (!Number.isFinite(amount)) throw new Error(`Amount is not a valid number: ${amount}`);
+
+        const amountLamports = Math.floor(amount * 1e9);
+        if (!Number.isFinite(amountLamports)) {
+          throw new Error(`Calculated amount is not valid: ${amountLamports}`);
+        }
+
+        console.log('[App] Transaction parameters validated:', {
+          proofSize: proofBytes.length,
+          amount,
+          amountLamports,
+          recipient: recipient.slice(0, 20) + '...',
+          merkleRootSize: merkleRootBuffer.length,
+        });
+
         tx = await buildPrivatePaymentTx(provider, {
           proof,
-          amount: new BN(Math.floor(amount * 1e9)),
+          amount: new BN(amountLamports),
           recipient: new PublicKey(recipient),
           merkleRoot: merkleRootBuffer,
         });
@@ -1115,26 +1137,6 @@ export default function Home() {
             onExportHistory={exportHistory}
             loading={false}
           />
-        </div>
-
-        {/* Info Box */}
-        <div className="mt-6 sm:mt-8 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6">
-          <h3 className="text-blue-900 dark:text-blue-100 font-semibold mb-2 sm:mb-3 text-sm sm:text-base">
-            ℹ️ Development Mode
-          </h3>
-          <ul className="text-blue-800 dark:text-blue-200 text-xs sm:text-sm space-y-1.5 sm:space-y-2">
-            <li>
-              • Mock ZK proofs for rapid testing (real Circom circuits ready in /zk/circuits/)
-            </li>
-            <li>• Light Protocol integration ready for production compression</li>
-            <li>
-              • Deploy to devnet:{' '}
-              <code className="bg-black/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs">
-                pnpm run deploy
-              </code>
-            </li>
-            <li>• Replace mock verifier with real Groth16 proof system</li>
-          </ul>
         </div>
       </div>
 

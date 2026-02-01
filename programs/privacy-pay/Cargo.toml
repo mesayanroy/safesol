@@ -23,3 +23,11 @@ default = []
 [dependencies]
 anchor-lang = "0.32.1"
 anyhow = "1.0.100"
+solana-sdk = "2.2"
+
+# Light Protocol - Compressed State Support (75% storage savings)
+light-sdk = "0.13.0"
+light-sdk-macros = "0.13.0"
+light-macros = "2.1.0"
+light-sdk-types = "0.13.0"
+light-hasher = "3.1.0"

@@ -157,8 +157,9 @@ export async function generateSpendProof(
   const nullifier = await generateNullifier(commitment, inputs.secret);
 
   if (useMock) {
-    // HACKATHON MODE: Return mock proof for rapid development
-    console.log('[ZK] Using MOCK proof - replace with real snarkjs in production');
+    // DISABLED FOR PRODUCTION: Real Groth16 proofs are now enabled
+    // This code path is only used if NEXT_PUBLIC_ENABLE_MOCK_PROOFS=true
+    console.log('[ZK] ⚠️  Using MOCK proof - Only for testing. Real proofs are available.');
     console.log('[ZK] Circuit inputs validated:', {
       secret: inputs.secret.toString().slice(0, 16) + '...',
       amount: inputs.amount.toString(),
@@ -187,8 +188,16 @@ export async function generateSpendProof(
 
   // PRODUCTION MODE: Real proof generation with proper input validation
   try {
-    console.log('[ZK] Generating REAL Groth16 proof...');
-    console.log('[ZK] Loading circuit files...');
+    console.log('\n' + '='.repeat(80));
+    console.log('[ZK] 🔐 REAL GROTH16 PROOF GENERATION STARTED');
+    console.log('[ZK] Mode: PRODUCTION - Real cryptographic proofs enabled');
+    console.log('[ZK] Circuit: spend.circom (2 inputs: secret, amount)');
+    console.log('='.repeat(80));
+    console.log('[ZK] Loading circuit files from public/circuits/...');
+    console.log('[ZK] Files needed:');
+    console.log('[ZK]   - spend.wasm (WASM bytecode)');
+    console.log('[ZK]   - spend_final.zkey (Proving key)');
+    console.log('='.repeat(80) + '\n');
 
     const { wasmFile, zkeyFile } = await loadCircuitFiles();
 
