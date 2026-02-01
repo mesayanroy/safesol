@@ -3,6 +3,11 @@
 Complete technical architecture of the ZK Private Payment system.
 
 ---
+## **Infratructure**
+
+<img width="1016" height="2276" alt="diagram-export-2-1-2026-8_57_01-PM" src="https://github.com/user-attachments/assets/34a1c58a-86b1-4d32-add9-1c07c22037d9" />
+
+---
 
 ## 📊 **System Architecture**
 
