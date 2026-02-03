@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function initState() {
-  console.log('🌱 Initializing state...\n');
+  console.log(' Initializing state...\n');
 
   // Load deployer keypair
   const keypairPath = path.join(process.env.HOME, '.config/solana/id.json');
