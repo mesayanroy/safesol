@@ -332,7 +332,7 @@ circom --version      # Should be 2.1.0+
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/safesol.git
+git clone https://github.com/mesayanroy/safesol.git
 cd safesol
 
 # Install dependencies
