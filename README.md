@@ -14,7 +14,7 @@ https://www.loom.com/share/0fd37eaa7bee4cbcaa2ea5564c112885
 
 ---
 
-## 🏆 **The "Holy Grail" of Solana Privacy**
+##  **The "Holy Grail" of Solana Privacy**
 
 SafeSol achieves what was previously thought impossible on Solana: **Ethereum-level privacy at Solana-level speeds and costs.**
 
