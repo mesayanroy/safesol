@@ -1,4 +1,4 @@
-# 🔒 SafeSol - Privacy Payment Protocol on Solana
+# 🔒 SafeSol - Privacy Payment Protocol on Solana.
 
 **Production-grade zero-knowledge payment system with Groth16 proofs, Light Protocol compression, and 6-layer security**
 
